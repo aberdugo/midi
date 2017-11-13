@@ -1,0 +1,4 @@
+name = Midi
+description= Example of using Drupal File API for load a midi file.
+package = Midi
+core = 7.x
