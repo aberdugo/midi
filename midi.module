@@ -52,7 +52,6 @@ function midi_block_view($delta = '') {
   switch ($delta) {
     case 'midi_block':
       $block['subject'] = t('Mi primer bloque midi'); // Indicamos el título predeterminado del bloque. Si el bloque no tiene un título predeterminado, debemos indicar NULL.
-<<<<<<< HEAD
       $block['content'] = array(
         '#markup' => theme('midi_box'), // t('Put here the form if could be.'); // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
         '#attached' => array(
@@ -67,9 +66,6 @@ function midi_block_view($delta = '') {
           ),
         ),
       );
-=======
-      $block['content'] = theme('midi_box'); // t('Put here the form if could be.'); // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
->>>>>>> 7a095e551aa6ab509553b4fd472cd79bae24b554
       break;
   }
 
