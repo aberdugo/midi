@@ -160,3 +160,40 @@ function draw() {
 }
 */
 
+function setup() {
+  var divButtons = createDiv("Buttons: ");
+  divButtons.id("buttons").parent("midi-box");
+  var button = createButton("play song automatically.");
+  button.parent("buttons");
+
+  var divPianoRoll = createDiv(null);
+  divPianoRoll.id("pianoroll").parent("midi-box");
+  var canvas = createCanvas(680, 2560);
+  // Move the canvas so it's inside our <div id="sketch-holder">.
+  canvas.parent('pianoroll');
+}
+
+function draw(){
+  // The height for each key
+  var h = height / 128;
+  for (var i = 0; i < 128; i++) {
+    var y = i * h;
+
+
+    // If the mouse is over the key
+    if (mouseY > y && mouseY < y + h && mouseX < width) {
+      // If we're clicking
+      if (mouseIsPressed) {
+        fill(100,255,200);
+        // Or just rolling over
+      } else {
+        fill(127);
+      }
+    } else {
+      fill(200);
+    }
+
+    // Draw the key
+    rect(0, y, width-1, h-1);
+  }
+}

@@ -1,3 +1,5 @@
-div#midi-block {
-  background-color: red;
+
+#pianoroll {
+  height: 360px;
+  overflow: auto; /* Se oculta el contenido desbordado y aparece un scroll */
 }
