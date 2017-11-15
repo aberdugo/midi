@@ -51,18 +51,22 @@ function midi_block_view($delta = '') {
 
   switch ($delta) {
     case 'midi_block':
+      $path = drupal_get_path('module', 'midi');
       $block['subject'] = t('Mi primer bloque midi'); // Indicamos el título predeterminado del bloque. Si el bloque no tiene un título predeterminado, debemos indicar NULL.
       $block['content'] = array(
         '#markup' => theme('midi_box'), // t('Put here the form if could be.'); // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
         '#attached' => array(
           'css' => array( // Agrega una hoja de estilos en cascada a la cola de la hoja de estilos.
-            drupal_get_path('module', 'midi') . '/css/midi-box.css',
+            $path . '/css/midi-box.css',
           ),
           'js' => array( // Agrega un archivo JavaScript, configuración o código en línea a la página.
-            drupal_get_path('module', 'midi') . '/js/p5.js',
-            drupal_get_path('module', 'midi') . '/js/p5.dom.js',
-            drupal_get_path('module', 'midi') . '/js/p5.sound.js',
-            drupal_get_path('module', 'midi') . '/js/sketch.js',
+            $path . '/js/p5.js',
+            $path . '/js/p5.dom.js',
+            $path . '/js/p5.sound.js',
+            $path . '/js/sketch.js',
+            array(
+              'data' => array('midi' => array('dosmasdos' => 4)),
+              'type' => 'setting',),
           ),
         ),
       );

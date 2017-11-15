@@ -161,16 +161,23 @@ function draw() {
 */
 
 function setup() {
-  var divButtons = createDiv("Buttons: ");
+  var divButtons = createDiv("MIDI file (*.mid) to upload: ");
   divButtons.id("buttons").parent("midi-box");
-  var button = createButton("play song automatically.");
+  var button = createButton("Examinar...");
   button.parent("buttons");
+  button.mousePressed(load)
 
   var divPianoRoll = createDiv(null);
   divPianoRoll.id("pianoroll").parent("midi-box");
   var canvas = createCanvas(680, 2560);
   // Move the canvas so it's inside our <div id="sketch-holder">.
   canvas.parent('pianoroll');
+
+  /*
+  if (Drupal.settings.midi.dosmasdos === 4) {
+    alert('Got it!');
+  }
+  */
 }
 
 function draw(){

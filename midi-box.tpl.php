@@ -6,3 +6,5 @@
  */
 ?>
 <div id="midi-box"></div>
+<?php
+echo "hola";
