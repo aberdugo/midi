@@ -3,20 +3,25 @@
 /**
  * @file
  * Midi File Module
- * Example of using Drupal File API for load a midi file.
+ * A block module that diplays a midi-box for using Drupal File API to load a midi file.
  */
 
 /**
- * Implements hook_theme().
+ * Implements hook_help().
  *
- * Creamos el elemento midi_box al que le vamos a asignar la plantilla midi-box.
+ * Displays help and module information.
+ *
+ * @param path
+ *   Which path of the site we're using to display help
+ * @param arg
+ *   Array that holds the current path as returned from arg() function
  */
-function midi_theme($existing, $type, $theme, $path) {
-  return array(
-    'midi_box' => array(
-      'template' => 'midi-box',
-    ),
-  );
+function midi_help($path, $arg) {
+  switch ($path) {
+    case "admin/help#midi":
+      return t("Displays a midi-box to load a midi file.");
+      break;
+  }
 }
 
 /*
@@ -32,19 +37,36 @@ function midi_theme($existing, $type, $theme, $path) {
 function midi_block_info() {
   // Declaración del bloque
   $blocks['midi_block'] = array(
+    // The name tha will appear in the block list.
     'info' => t('Midi box'), // (obligatorio). Nombre del bloque que aparecerá en el listado de bloques de administración. (Estructura/Bloques)
-    'cache' => DRUPAL_NO_CACHE, // (opcional). Define el tipo de caché.
+    // Default setting.
+    'cache' => DRUPAL_CACHE_PER_ROLE, // (opcional). Define el tipo de caché.
   );
 
   return $blocks;
 }
 
 /**
+ * Implements hook_theme().
+ *
+ * Creamos el elemento midi_box al que le vamos a asignar la plantilla midi-box.
+ */
+function midi_theme($existing, $type, $theme, $path) {
+  return array(
+    'midi_box' => array(
+      'template' => 'midi-box',
+    ),
+  );
+}
+
+/*
+/**
  * Implements hook_block_view().
  *
  * La función hook_block_view() tiene como parámetro de entrada el identificador del bloque ($delta).
  * La función devuelve un vector con los campos subject y content.
  */
+/*
 function midi_block_view($delta = '') {
   // Contenido del bloque 'midi_block' definido en hook_block_info().
   $block = array();
@@ -75,6 +97,65 @@ function midi_block_view($delta = '') {
 
   return $block;
 }
+*/
+
+/**
+ * Implements hook_block_view().
+ *
+ * Prepares the contents of the block.
+ */
+function midi_block_view($delta = '') {
+  switch ($delta) {
+    case 'midi_block':
+      $block['subject'] = t('Mi primer bloque midi'); // Indicamos el título predeterminado del bloque. Si el bloque no tiene un título predeterminado, debemos indicar NULL.
+      if (user_access('access content')) {
+        $path = drupal_get_path('module', 'midi');
+        $block['content'] = array(
+          '#markup' => theme('midi_box'), // t('Put here the form if could be.'); // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
+          '#attached' => array(
+            'css' => array( // Agrega una hoja de estilos en cascada a la cola de la hoja de estilos.
+              $path . '/css/midi-box.css',
+            ),
+            'js' => array( // Agrega un archivo JavaScript, configuración o código en línea a la página.
+              $path . '/js/p5.js',
+              $path . '/js/p5.dom.js',
+              $path . '/js/p5.sound.js',
+              $path . '/js/sketch.js',
+              array(
+                'data' => array('midi' => array('dosmasdos' => 4)),
+                'type' => 'setting',),
+            ),
+          ),
+        );
+        /*
+        // Use our custom function to retrieve data.
+        $result = current_posts_contents();
+        // Array to contain items for the block to render.
+        $items = array();
+        // Iterate over the resultset and format as links.
+        foreach ($result as $node) {
+          $items[] = array(
+            'data' => l($node->title, 'node/' . $node->nid),
+          );
+        }
+
+        // No content in the last week.
+        if (empty($items)) {
+          $block['content'] = t('No posts available.');
+        }
+        else {
+          // Pass data through theme function.
+          $block['content'] = theme('item_list', array(
+            'items' => $items));
+        }
+        */
+      }
+      return $block; // En vez de break; here
+  }
+  // y return $block here
+}
+
+
 
 /*
  * Para traducir los textos de dentro de la función t() (Configuración/REGIONAL E IDIOMA-Traducir interfaz/TRADUCIR)
