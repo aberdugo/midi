@@ -161,16 +161,16 @@ function draw() {
 */
 
 function setup() {
-  var divButtons = createDiv("MIDI file (*.mid) to upload: ");
+  var divButtons = createDiv("Herramientas: ");
   divButtons.id("buttons").parent("midi-box");
-  var button = createButton("Examinar...");
+  var button = createButton("Pintar");
   button.parent("buttons");
-  button.mousePressed(load)
+  // button.mousePressed();
 
   var divPianoRoll = createDiv(null);
   divPianoRoll.id("pianoroll").parent("midi-box");
   var canvas = createCanvas(680, 2560);
-  // Move the canvas so it's inside our <div id="sketch-holder">.
+  // Move the canvas so it's inside our <div id="pianoroll">.
   canvas.parent('pianoroll');
 
   /*
