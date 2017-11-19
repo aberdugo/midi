@@ -112,13 +112,13 @@ function midi_block_view($delta = '') {
       $block['subject'] = t('Mi primer bloque midi'); // Indicamos el título predeterminado del bloque. Si el bloque no tiene un título predeterminado, debemos indicar NULL.
       if (user_access('access content')) {
         $path = drupal_get_path('module', 'midi');
-        $block['content'] = array(
+        $block['content'] = array( // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
           'part1' => array(
-            '#markup' =>  'Formulario aquí', // theme('midi_box'), // t('Put here the form if could be.'); // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
+            '#markup' =>  midi_fileload_get_form(),
           ),
           'part2' => array(
             '#theme' => 'midi_box',
-            // '#markup' => theme('midi_box'), // t('Put here the form if could be.'); // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
+            // '#markup' => theme('midi_box'), // t('Put here the form if could be.');
           ),
           '#attached' => array(
             'css' => array( // Agrega una hoja de estilos en cascada a la cola de la hoja de estilos.
@@ -161,6 +161,58 @@ function midi_block_view($delta = '') {
       return $block; // En vez de break; here
   }
   // y return $block here
+}
+
+
+/**
+ *  Form constructor for the midi_fileload_form.
+ */
+function midi_fileload_form($form, &$form_state) {
+  $form['file'] = array(
+    '#type' => 'file',
+    '#title' => t('Midi file'),
+    '#description' => t('Upload a midi file, allowed extension: mid'),
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return $form;
+}
+
+function midi_fileload_get_form() {
+  $form = drupal_get_form('midi_fileload_form');
+  $output = drupal_render($form);
+
+  return $output;
+}
+
+/**
+ * Validate handler for form_example_tutorial_10().
+ *
+ * @ingroup form_example
+ */
+function midi_fileload_form_validate($form, &$form_state) {
+  $file = file_save_upload('file', array(
+    // Validate extensions.
+    'file_validate_extensions' => array('mid'),
+  ));
+  // If the file passed validation:
+  if ($file) {
+    // Move the file into the Drupal file system.
+    if ($file = file_move($file, 'temporary://')) {
+      // Save the file for use in the submit handler.
+      $form_state['storage']['file'] = $file;
+    }
+    else {
+      form_set_error('file', t("Failed to move the uploaded file to the tmp site's file folder."));
+    }
+  }
+  else {
+    form_set_error('file', t('No file was uploaded.'));
+  }
 }
 
 
