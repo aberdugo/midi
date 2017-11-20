@@ -1,175 +1,37 @@
-/*
-function setup() {
-    line(15, 25, 70,90);
-}
-*/
+const BEAT_WIDTH = 20; // ancho de cada beat
+const BEAT_HEIGHT = 20; // altura de cada beat
+const TEXT_SIZE = BEAT_HEIGHT - 8; // El tamaño de fuente del texto de la tecla pulsada
+const MIN_WIDTH_FOR_TEXT = 40;
+const TEXT_NOTES = [
+                            'G10','F#10','F10','E10','D#10','D10','C#10','C10',
+  'B9', 'A#9', 'A9', 'G#9', 'G9', 'F#9', 'F9', 'E9', 'D#9', 'D9', 'C#9', 'C9',
+  'B8', 'A#8', 'A8', 'G#8', 'G8', 'F#8', 'F8', 'E8', 'D#8', 'D8', 'C#8', 'C8',
+  'B7', 'A#7', 'A7', 'G#7', 'G7', 'F#7', 'F7', 'E7', 'D#7', 'D7', 'C#7', 'C7',
+  'B6', 'A#6', 'A6', 'G#6', 'G6', 'F#6', 'F6', 'E6', 'D#6', 'D6', 'C#6', 'C6',
+  'B5', 'A#5', 'A5', 'G#5', 'G5', 'F#5', 'F5', 'E5', 'D#5', 'D5', 'C#5', 'C5',
+  'B4', 'A#4', 'A4', 'G#4', 'G4', 'F#4', 'F4', 'E4', 'D#4', 'D4', 'C#4', 'C4',
+  'B3', 'A#3', 'A3', 'G#3', 'G3', 'F#3', 'F3', 'E3', 'D#3', 'D3', 'C#3', 'C3',
+  'B2', 'A#2', 'A2', 'G#2', 'G2', 'F#2', 'F2', 'E2', 'D#2', 'D2', 'C#2', 'C2',
+  'B1', 'A#1', 'A1', 'G#1', 'G1', 'F#1', 'F1', 'E1', 'D#1', 'D1', 'C#1', 'C1',
+  'B0', 'A#0', 'A0', 'G#0', 'G0', 'F#0', 'F0', 'E0', 'D#0', 'D0', 'C#0', 'C0'
+  //SI          LA           SOL          FA    MI           RE           DO
+];
 
-/*
-var x = 0;
-
-function setup() {
-    background(100);
-}
-
-function draw() {
-    ellipse(x, height/2, 20, 20);
-    x = x + 1;
-}
-*/
-
-/*
-function setup() {
-    createCanvas(600, 400);
-    line(15, 25, 70, 90);
-}
-*/
-
-/*
-function setup() {
-    var myCanvas = createCanvas(600, 400);
-    myCanvas.parent('myContainer');
-}
-*/
-
-/*
-function setup() {
-    drawingContext.shadowOffsetX = 5;
-    drawingContext.shadowOffsetY = -5;
-    drawingContext.shadowBlur = 10;
-    drawingContext.shadowColor = "black";
-    background(200);
-    ellipse(width/2, height/2, 50, 50);
-}
-*/
-
-/* Bien
-function setup() {
-    createCanvas(400, 240);
-    loadImage('cat.jpg', drawCat);
-}
-
-function drawCat(img) {
-    image(img, 0, 0);
-}
-*/
-
-/* Mal
-function setup() {
-    createCanvas(400, 240);
-    var img = loadImage('cat.jpg');
-    image(img, 0, 0);
-}
-*/
-
-/* Bien
-var img;
-function preload() {
-    img = loadImage('cat.jpg');
-}
+var keyWidth = 40; // ancho de la tecla pulsada (20px es la unidad mínima).
 
 function setup() {
-    createCanvas(400, 240);
-    image(img, 0, 0);
-}
-*/
-
-/* Storing pointers and calling methods
-var canvas;
-
-function setup() {
-    // We are still calling createCanvas like in the past, but now
-    // we are storing the result as a variable. This way we can
-    // call methods of the element, to set the position for instance.
-    canvas = createCanvas(600, 400);
-
-    // Here we call methods of each element to set the position
-    // and id, try changing these values.
-    // Use the inspector to look at the HTML generated from this
-    // code when you load the sketch in your browser.
-    canvas.position(300, 50);
-    canvas.class("lemon");
-}
-
-function draw() {
-    // These commands are applied to the graphics canvas as normal.
-    background(220, 180, 200);
-    ellipse(width/2, height/2, 100, 100);
-    ellipse(width/4, height/2, 50, 50);
-}
-*/
-
-/* Using parent()
-// En html <div id='myContainer'></div>
-function setup() {
-    var myCanvas createCanvas(600, 400);
-    myCanvas.parent('myContainer');
-}
-*/
-
-/* Using position()
-function setup() {
-    var myCanvas = createCanvas(600, 400);
-    myCanvas.position(100, 100);
-}
-*/
-
-/* Creating other HTML elements
-var canvas, text;
-
-function setup() {
-    canvas = createCanvas(600, 400);
-    canvas.position(300, 50);
-
-    text = createDiv("Here is some text and <a href='http://i.imgur.com/WXaUlrK.gif'>this is an HTML link</a>!");
-    text.position(50, 50);
-}
-
-function draw() {
-    background(220, 180, 200);
-
-    ellipse(width/2, height/2, 100, 100);
-    ellipse(width/4, height/2, 50, 50);
-}
-*/
-
-/*
-var img;
-var canvas;
-
-function setup() {
-  img = createImg("http://th07.deviantart.net/fs70/PRE/i/2011/260/3/5/dash_hooray_by_rainbowcrab-d49xk0d.png");
-  canvas = createCanvas(400, 400);
-
-  img.parent('midi-block');
-  img.position(190, 50);
-  img.size(200, 200);
-
-  canvas.parent('midi-block');
-  canvas.position(300, 50);
-}
-
-function draw() {
-  noStroke();
-  background(220, 180, 200);
-  fill(180, 200, 40);
-  strokeWeight(6);
-  stroke(180, 100, 240);
-  for (var i = 0; i < width; i += 15) {
-    line(i, 0, i, height);
-  }
-}
-*/
-
-function setup() {
-  var divButtons = createDiv("Herramientas: ");
-  divButtons.id("buttons").parent("midi-box");
+  // var divButtons = createDiv("Herramientas: ");
+  // divButtons.id("buttons").parent("midi-box");
   var button = createButton("Pintar");
   button.parent("buttons");
   // button.mousePressed();
 
-  var divPianoRoll = createDiv(null);
-  divPianoRoll.id("pianoroll").parent("midi-box");
-  var canvas = createCanvas(680, 2560);
+  // var divPianoRoll = createDiv(null);
+  // divPianoRoll.id("pianoroll").parent("midi-box");
+  var canvas = createCanvas(BEAT_WIDTH * 64, BEAT_HEIGHT * 128);
+
+  canvas.mouseClicked(addNote); // attach listener for canvas only
+
   // Move the canvas so it's inside our <div id="pianoroll">.
   canvas.parent('pianoroll');
 
@@ -178,9 +40,68 @@ function setup() {
     alert('Got it!');
   }
   */
+
+  for (var note = 0; note < 128; note++) {
+    stroke(170); // borde rectángulos grises
+    noFill();
+    if((note % 12 == 1) // C#
+        ||(note % 12 == 3) // Eb
+        ||(note % 12 == 6) // F#
+        ||(note % 12 == 8) // Ab
+        ||(note % 12 == 10)) // Bb
+    {
+      fill(200);
+    }
+
+    var y = note * BEAT_HEIGHT;
+    // Draw the key
+    rect(0, y, width-1, BEAT_HEIGHT-1);
+  }
+
+  var i = 0;
+  while (i < width) {
+    if (i % (BEAT_WIDTH * 16) == 0) {
+      stroke(0);
+      strokeWeight(2);
+    }
+
+    else if (i % (BEAT_WIDTH * 4) == 0) {
+      stroke(85);
+      strokeWeight(1);
+    }
+    else {
+      stroke(170);
+      strokeWeight(1);
+    }
+
+
+    line(i, 0, i, height);
+    i = i + BEAT_WIDTH;
+  }
 }
 
+
+function addNote() {
+  stroke(1); // borde réctangulo nota negro
+  fill(36, 231, 17); // Verde puro
+
+  var posX = Math.floor(mouseX / BEAT_WIDTH) * BEAT_WIDTH;
+  var posY = Math.floor(mouseY / BEAT_HEIGHT) * BEAT_HEIGHT;
+
+  // Draw the key
+  rect(posX, posY, keyWidth, BEAT_HEIGHT, 2);
+  console.log(`${posX}, ${posY}, 40, ${BEAT_HEIGHT}`);
+
+  if (keyWidth >= MIN_WIDTH_FOR_TEXT) {
+    textSize(TEXT_SIZE);
+    fill(0);
+    text(TEXT_NOTES[posY / BEAT_HEIGHT], posX + 1, posY + BEAT_HEIGHT - 1);
+  }
+}
+
+
 function draw(){
+  /*
   // The height for each key
   var h = height / 128;
   for (var i = 0; i < 128; i++) {
@@ -203,4 +124,5 @@ function draw(){
     // Draw the key
     rect(0, y, width-1, h-1);
   }
+  */
 }
