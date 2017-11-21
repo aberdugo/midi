@@ -6,6 +6,6 @@
  */
 ?>
 <div id="midi-box">
-    <div id="buttons">Herrmientas: </div>
+    <div id="buttons">Herramientas: </div>
     <div id="pianoroll"></div>
 </div>
