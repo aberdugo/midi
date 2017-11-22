@@ -51,6 +51,10 @@ keyWidht
 var keyWidth = 96; // ancho de la tecla pulsada (24px es la unidad mínima, semicorchea).
 var spanDuracion;
 var sliderKeyWidth;
+var buttonPintar;
+var buttonBorrar;
+var buttonCrearStringMidi;
+var canvas;
 
 // Iniciamos un array que contendrá 128 array, cada uno por cada nota.
 var arrayNotes = [];
@@ -71,22 +75,23 @@ function setup() {
   sliderKeyWidth.changed(cambiarDuracion);
 
   // Botón Pintar
-  var buttonPintar = createButton("Pintar");
+  buttonPintar = createButton("Pintar");
   buttonPintar.parent("buttons");
+  buttonPintar.class("pintarSelected"); // Clase Button no definitivo
   buttonPintar.mousePressed(changeDraw);
 
   // Botón Borrar
-  var buttonBorrar = createButton("Borrar");
+  buttonBorrar = createButton("Borrar");
   buttonBorrar.parent("buttons");
   buttonBorrar.mousePressed(changeErase);
 
   // Botón CrearStringMidi
-  var buttonCrearStringMidi = createButton("Crear string Midi");
+  buttonCrearStringMidi = createButton("Crear string Midi");
   buttonCrearStringMidi.parent("buttons");
   buttonCrearStringMidi.mousePressed(crearStringMidi);
 
   // Creamos el canvas
-  var canvas = createCanvas(BEAT_WIDTH * 64, BEAT_HEIGHT * 128);
+  canvas = createCanvas(BEAT_WIDTH * 64, BEAT_HEIGHT * 128);
 
   canvas.mouseClicked(clickCanvas); // attach listener for canvas only
 
@@ -145,10 +150,14 @@ function cambiarDuracion() {
 }
 
 function changeDraw() {
+  buttonBorrar.removeClass("borrarSelected"); // Clase Button no definitivo
+  buttonPintar.class("pintarSelected"); // Clase Button no definitivo
   estaBorrando = false;
 }
 
 function changeErase() {
+  buttonPintar.removeClass("pintarSelected"); // Clase Button no definitivo
+  buttonBorrar.class("borrarSelected"); // Clase Button no definitivo
   estaBorrando = true;
 }
 
@@ -173,7 +182,6 @@ function clickCanvas() { // user click the canvas
     }
 
     if (esPintable) {
-      // stroke(1); // borde réctangulo nota negro
       fill(36, 231, 17); // Verde puro
       // Draw the key
       if ((posX + keyWidth) % 384 == 0) {
@@ -181,7 +189,6 @@ function clickCanvas() { // user click the canvas
       }
       else {
         rect(posX + 1, posY + 1, keyWidth - 1, BEAT_HEIGHT - 1, 2);
-        console.log(`${posX}, ${posY}, ${posX + keyWidth}, ${BEAT_HEIGHT}`);
       }
 
       // Añadimos la nota pulsada al arrayNotes
@@ -204,7 +211,6 @@ function clickCanvas() { // user click the canvas
         noEsBorrable = false;
 
         // Repintamos el rectángulo de fondo
-        // stroke(170); // borde rectángulos grises
         fill(255);
         if(((notaY) % 12 == 11)    // G#
             ||((notaY) % 12 == 9)  // A#
@@ -238,21 +244,14 @@ function clickCanvas() { // user click the canvas
         }
 
         // Borramos la notaPulsada del arrayNotes
-        console.log(arrayNotes[notaY]);
-        console.log(i);
         arrayNotes[notaY].splice(i, 1);
-        console.log(arrayNotes[notaY]);
-
-        // console.log(`${arrayNotes[notaY][i][0]}, ${posY}, ${arrayNotes[notaY][i][1] - arrayNotes[notaY][i][0] - 1}, ${BEAT_HEIGHT - 1}`);
       }
-      // console.log(arrayNotes[notaY][i]);
       i++;
     }
 
     noStroke();
-    console.log(noEsBorrable);
   }
-  // console.log(arrayNotes);
+  console.log(arrayNotes);
 }
 
 // const MFILE = "MFile 0 1 96";
@@ -261,7 +260,13 @@ function clickCanvas() { // user click the canvas
 // const TRKEND = "TrkEnd";
 
 function crearStringMidi() {
-  var stringMidi;
+  var stringMidi = "";
+
+  stringMidi += MFILE + "\n";
+  stringMidi += MTRK + "\n";
+
+  console.log(stringMidi);
+
 }
 
 /*

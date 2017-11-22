@@ -3,3 +3,11 @@
   height: 360px;
   overflow: auto; /* Se oculta el contenido desbordado y aparece un scroll */
 }
+
+.pintarSelected {
+  color: green;
+}
+
+.borrarSelected {
+  color: red;
+}
