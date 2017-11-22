@@ -49,6 +49,8 @@ keyWidht
 24  -> semicorchea
  */
 var keyWidth = 96; // ancho de la tecla pulsada (24px es la unidad mínima, semicorchea).
+var spanDuracion;
+var sliderKeyWidth;
 
 // Iniciamos un array que contendrá 128 array, cada uno por cada nota.
 var arrayNotes = [];
@@ -59,21 +61,34 @@ for (var i = 0; i < 128; i++) {
 var estaBorrando = false;
 
 function setup() {
-  // var divButtons = createDiv("Herramientas: ");
-  // divButtons.id("buttons").parent("midi-box");
+  spanDuracion = createSpan('4 cuadrado(s)');
+  spanDuracion.parent("buttons");
+
+  // slider
+  sliderKeyWidth = createSlider(1, 32, 4, 1);
+  sliderKeyWidth.parent("buttons");
+  sliderKeyWidth.style('width', '80px');
+  sliderKeyWidth.changed(cambiarDuracion);
+
+  // Botón Pintar
   var buttonPintar = createButton("Pintar");
   buttonPintar.parent("buttons");
   buttonPintar.mousePressed(changeDraw);
 
+  // Botón Borrar
   var buttonBorrar = createButton("Borrar");
   buttonBorrar.parent("buttons");
   buttonBorrar.mousePressed(changeErase);
 
-  // var divPianoRoll = createDiv(null);
-  // divPianoRoll.id("pianoroll").parent("midi-box");
+  // Botón CrearStringMidi
+  var buttonCrearStringMidi = createButton("Crear string Midi");
+  buttonCrearStringMidi.parent("buttons");
+  buttonCrearStringMidi.mousePressed(crearStringMidi);
+
+  // Creamos el canvas
   var canvas = createCanvas(BEAT_WIDTH * 64, BEAT_HEIGHT * 128);
 
-  canvas.mouseClicked(addNote); // attach listener for canvas only
+  canvas.mouseClicked(clickCanvas); // attach listener for canvas only
 
   // Move the canvas so it's inside our <div id="pianoroll">.
   canvas.parent('pianoroll');
@@ -84,23 +99,25 @@ function setup() {
   }
   */
 
+  // Pintamos (canvas) los rectángulos de fondo inicialmente
   for (var note = 0; note < 128; note++) {
     stroke(170); // borde rectángulos grises
-    noFill();
-    if((note % 12 == 1) // C#
-        ||(note % 12 == 3) // Eb
-        ||(note % 12 == 6) // F#
-        ||(note % 12 == 8) // Ab
-        ||(note % 12 == 10)) // Bb
+    fill(255);
+    if((note % 12 == 11)    // G#
+        ||(note % 12 == 9)  // A#
+        ||(note % 12 == 6)  // C#
+        ||(note % 12 == 4)  // D#
+        ||(note % 12 == 1)) // F#
     {
       fill(200);
     }
 
     var y = note * BEAT_HEIGHT;
     // Draw the key
-    rect(0, y, width-1, BEAT_HEIGHT-1);
+    rect(0, y, width, BEAT_HEIGHT);
   }
 
+  // Pintamos (canvas) las líneas verticales inicialmente
   var i = 0;
   while (i < width) {
     if (i % (BEAT_WIDTH * 16) == 0) {
@@ -110,17 +127,21 @@ function setup() {
 
     else if (i % (BEAT_WIDTH * 4) == 0) {
       stroke(85);
-      strokeWeight(1);
     }
     else {
       stroke(170);
-      strokeWeight(1);
     }
 
 
     line(i, 0, i, height);
+    strokeWeight(1); // 1px de anchura del stroke (strokeWeight(1) por defecto)
     i = i + BEAT_WIDTH;
   }
+  noStroke();
+}
+
+function cambiarDuracion() {
+  spanDuracion.html(sliderKeyWidth.value() + " cuadrado(s)");
 }
 
 function changeDraw() {
@@ -131,49 +152,116 @@ function changeErase() {
   estaBorrando = true;
 }
 
-function addNote() {
+function clickCanvas() { // user click the canvas
   var posX = Math.floor(mouseX / BEAT_WIDTH) * BEAT_WIDTH;
   var posY = Math.floor(mouseY / BEAT_HEIGHT) * BEAT_HEIGHT;
 
+  var notaY = posY / BEAT_HEIGHT;
+
   if (!estaBorrando) {
-    stroke(1); // borde réctangulo nota negro
-    fill(36, 231, 17); // Verde puro
-
-
-
+    keyWidth = sliderKeyWidth.value() * BEAT_WIDTH;
     var esPintable = true;
     var i = 0;
-    while (i < arrayNotes[posY / BEAT_HEIGHT].length && esPintable) {
-      if ((posX >= arrayNotes[posY / BEAT_HEIGHT][i][0]
-              && posX < arrayNotes[posY / BEAT_HEIGHT][i][1])
-          || (posX + keyWidth - BEAT_WIDTH >= arrayNotes[posY / BEAT_HEIGHT][i][0]
-              && posX + keyWidth - BEAT_WIDTH < arrayNotes[posY / BEAT_HEIGHT][i][1])) {
+    while (i < arrayNotes[notaY].length && esPintable) {
+      if ((posX >= arrayNotes[notaY][i][0]
+              && posX < arrayNotes[notaY][i][1])
+          || (posX + keyWidth - BEAT_WIDTH >= arrayNotes[notaY][i][0]
+              && posX + keyWidth - BEAT_WIDTH < arrayNotes[notaY][i][1])) {
         esPintable = false;
       }
-      // console.log(arrayNotes[posY / BEAT_HEIGHT][i]);
       i++;
     }
 
     if (esPintable) {
+      // stroke(1); // borde réctangulo nota negro
+      fill(36, 231, 17); // Verde puro
       // Draw the key
-      rect(posX, posY, keyWidth, BEAT_HEIGHT, 2);
-      console.log(`${posX}, ${posY}, ${posX + keyWidth}, ${BEAT_HEIGHT}`);
+      if ((posX + keyWidth) % 384 == 0) {
+        rect(posX + 1, posY + 1, keyWidth - 2, BEAT_HEIGHT - 1, 2);
+      }
+      else {
+        rect(posX + 1, posY + 1, keyWidth - 1, BEAT_HEIGHT - 1, 2);
+        console.log(`${posX}, ${posY}, ${posX + keyWidth}, ${BEAT_HEIGHT}`);
+      }
 
       // Añadimos la nota pulsada al arrayNotes
-      arrayNotes[posY / BEAT_HEIGHT].push([posX, posX + keyWidth]);
+      arrayNotes[notaY].push([posX, posX + keyWidth]);
 
       if (keyWidth >= MIN_WIDTH_FOR_TEXT) {
         textSize(TEXT_SIZE);
         fill(0);
-        text(TEXT_NOTES[posY / BEAT_HEIGHT], posX + 1, posY + BEAT_HEIGHT - 1);
+        text(TEXT_NOTES[notaY], posX + 1, posY + BEAT_HEIGHT - 1);
       }
 
-      console.log(arrayNotes);
+
     }
   }
   else if (estaBorrando) {
+    var noEsBorrable = true;
+    var i = 0;
+    while (i < arrayNotes[notaY].length && noEsBorrable) {
+      if (posX >= arrayNotes[notaY][i][0] && posX < arrayNotes[notaY][i][1]) {
+        noEsBorrable = false;
 
+        // Repintamos el rectángulo de fondo
+        // stroke(170); // borde rectángulos grises
+        fill(255);
+        if(((notaY) % 12 == 11)    // G#
+            ||((notaY) % 12 == 9)  // A#
+            ||((notaY) % 12 == 6)  // C#
+            ||((notaY) % 12 == 4)  // D#
+            ||((notaY) % 12 == 1)) // F#
+        {
+          fill(200);
+        }
+        rect(arrayNotes[notaY][i][0], posY + 1, arrayNotes[notaY][i][1] - arrayNotes[notaY][i][0], BEAT_HEIGHT - 1);
+
+        // Repintamos las líneas verticales
+        var j = arrayNotes[notaY][i][0];
+        while (j <= arrayNotes[notaY][i][1]) {
+          if (j % (BEAT_WIDTH * 16) == 0) {
+            stroke(0);
+            strokeWeight(2);
+          }
+
+          else if (j % (BEAT_WIDTH * 4) == 0) {
+            stroke(85);
+          }
+          else {
+            stroke(170);
+          }
+
+
+          line(j, posY, j, posY + BEAT_HEIGHT);
+          strokeWeight(1); // default
+          j = j + BEAT_WIDTH;
+        }
+
+        // Borramos la notaPulsada del arrayNotes
+        console.log(arrayNotes[notaY]);
+        console.log(i);
+        arrayNotes[notaY].splice(i, 1);
+        console.log(arrayNotes[notaY]);
+
+        // console.log(`${arrayNotes[notaY][i][0]}, ${posY}, ${arrayNotes[notaY][i][1] - arrayNotes[notaY][i][0] - 1}, ${BEAT_HEIGHT - 1}`);
+      }
+      // console.log(arrayNotes[notaY][i]);
+      i++;
+    }
+
+    noStroke();
+    console.log(noEsBorrable);
   }
+  // console.log(arrayNotes);
+}
+
+// const MFILE = "MFile 0 1 96";
+// const MTRK = "MTrk";
+// const META_TRKEND = "Meta TrkEnd";
+// const TRKEND = "TrkEnd";
+
+function crearStringMidi() {
+  var stringMidi;
 }
 
 /*
