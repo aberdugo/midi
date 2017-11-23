@@ -48,7 +48,10 @@ keyWidht
 48  -> corchea
 24  -> semicorchea
  */
-var keyWidth = 96; // ancho de la tecla pulsada (24px es la unidad mínima, semicorchea).
+var keyWidth = 96; // Ancho de la tecla pulsada (24px es la unidad mínima, semicorchea).
+var volumenOnNota = 100; // Volumen con que se pulsa la nota (default)
+var volumenOffNota = 0; // Volumen con que se apaga la nota (default)
+var channelNota = 1; // Canal de la nota (default)
 var spanDuracion;
 var sliderKeyWidth;
 var buttonPintar;
@@ -61,6 +64,8 @@ var arrayNotes = [];
 for (var i = 0; i < 128; i++) {
   arrayNotes[i] = [];
 }
+
+var arrayOrdenado = [];
 
 var estaBorrando = false;
 
@@ -192,7 +197,12 @@ function clickCanvas() { // user click the canvas
       }
 
       // Añadimos la nota pulsada al arrayNotes
-      arrayNotes[notaY].push([posX, posX + keyWidth]);
+      // posX -> posición dónde empieza la nota
+      // posX + keyWidth -> posición dónde termina la nota
+      // volumenOnNota -> Volumen con que se pulsa la nota
+      // volumenOffNota -> Volumen con que se apaga la nota
+      // channelNota -> Canal de la nota
+      arrayNotes[notaY].push([posX, posX + keyWidth, volumenOnNota,volumenOffNota, channelNota]);
 
       if (keyWidth >= MIN_WIDTH_FOR_TEXT) {
         textSize(TEXT_SIZE);
@@ -267,13 +277,46 @@ function crearStringMidi() {
 
   console.log(stringMidi);
 
+  for (var i = 0; i < arrayNotes.length; i++) {
+    for (var j = 0; j < arrayNotes[i].length; j++) {
+      var posInicio = arrayNotes[i][j][0];
+      var ch = arrayNotes[i][j][4];
+      var n = numerarNotaMidiReal(i);
+      var volInicio = arrayNotes[i][j][2];
+
+      var posFinal = arrayNotes[i][j][1];
+      var volFinal = arrayNotes[i][j][3];
+
+      arrayOrdenado.push([posInicio, ch, n, volInicio]);
+      arrayOrdenado.push([posFinal, ch, n, volFinal]);
+
+
+    }
+  }
+
+  // Primero ordenamos por volumen de 0 a más (necesario para el cierre de nota con volumen 0)
+  arrayOrdenado.sort(function (a, b) {
+    return a[3] - b[3];
+  });
+
+  // Segundo ordenamos por posición de 0 a más.
+  arrayOrdenado.sort(function (a, b) {
+    return a[0] - b[0];
+  });
+
+  for (var i = 0; i < arrayOrdenado.length; i++) {
+    stringMidi += arrayOrdenado[i][0] + " On ch=" + arrayOrdenado[i][1] + " n=" + arrayOrdenado[i][2] + " v=" + arrayOrdenado[i][3] + "\n";
+  }
+
+  stringMidi += arrayOrdenado[arrayOrdenado.length - 1][0] + META_TRKEND + "\n";
+  stringMidi += TRKEND;
+
 }
 
-/*
-function numerarNota() {
-  (posY - 127) * -1;
+// 0 -> 127, 1 -> 126, 2 -> 125, ...
+function numerarNotaMidiReal(notaSinTransformar) {
+  return (notaSinTransformar - 127) * (-1);
 }
-*/
 
 function draw(){
   /*
