@@ -56,7 +56,7 @@ var spanDuracion;
 var sliderKeyWidth;
 var buttonPintar;
 var buttonBorrar;
-var buttonCrearStringMidi;
+var buttonCrearMidiText;
 var canvas;
 
 // Iniciamos un array que contendrá 128 array, cada uno por cada nota.
@@ -65,7 +65,7 @@ for (var i = 0; i < 128; i++) {
   arrayNotes[i] = [];
 }
 
-var arrayOrdenado = [];
+// var arrayOrdenado = [];
 
 var estaBorrando = false;
 
@@ -90,10 +90,10 @@ function setup() {
   buttonBorrar.parent("buttons");
   buttonBorrar.mousePressed(changeErase);
 
-  // Botón CrearStringMidi
-  buttonCrearStringMidi = createButton("Crear string Midi");
-  buttonCrearStringMidi.parent("buttons");
-  buttonCrearStringMidi.mousePressed(crearStringMidi);
+  // Botón CrearMidiText
+  buttonCrearMidiText = createButton("Crear Midi text");
+  buttonCrearMidiText.parent("buttons").hide();
+  buttonCrearMidiText.mousePressed(crearMidiText);
 
   // Creamos el canvas
   canvas = createCanvas(BEAT_WIDTH * 64, BEAT_HEIGHT * 128);
@@ -174,18 +174,22 @@ function clickCanvas() { // user click the canvas
 
   if (!estaBorrando) {
     keyWidth = sliderKeyWidth.value() * BEAT_WIDTH;
+    console.log(keyWidth);
     var esPintable = true;
     var i = 0;
     while (i < arrayNotes[notaY].length && esPintable) {
       if ((posX >= arrayNotes[notaY][i][0]
               && posX < arrayNotes[notaY][i][1])
           || (posX + keyWidth - BEAT_WIDTH >= arrayNotes[notaY][i][0]
-              && posX + keyWidth - BEAT_WIDTH < arrayNotes[notaY][i][1])) {
+              && posX + keyWidth - BEAT_WIDTH < arrayNotes[notaY][i][1])
+          || (arrayNotes[notaY][i][0] >= posX
+              && arrayNotes[notaY][i][1] < posX + keyWidth)) {
         esPintable = false;
       }
       i++;
     }
 
+    console.log(esPintable);
     if (esPintable) {
       fill(36, 231, 17); // Verde puro
       // Draw the key
@@ -255,13 +259,34 @@ function clickCanvas() { // user click the canvas
 
         // Borramos la notaPulsada del arrayNotes
         arrayNotes[notaY].splice(i, 1);
+        select('textarea').value("");
       }
       i++;
     }
 
     noStroke();
   }
-  console.log(arrayNotes);
+
+  habilitarCrearMidiText();
+}
+
+function habilitarCrearMidiText() {
+  var contieneNotas = false;
+  var i = 0;
+  while (i < arrayNotes.length && !contieneNotas) {
+    if (arrayNotes[i].length > 0) {
+      contieneNotas = true;
+    }
+    i++;
+  }
+
+  if (contieneNotas) {
+    buttonCrearMidiText.show();
+    buttonCrearMidiText.style("display", "inline");
+  }
+  else {
+    buttonCrearMidiText.hide();
+  }
 }
 
 // const MFILE = "MFile 0 1 96";
@@ -269,13 +294,12 @@ function clickCanvas() { // user click the canvas
 // const META_TRKEND = "Meta TrkEnd";
 // const TRKEND = "TrkEnd";
 
-function crearStringMidi() {
+function crearMidiText() {
+  var arrayOrdenado = [];
   var stringMidi = "";
 
   stringMidi += MFILE + "\n";
   stringMidi += MTRK + "\n";
-
-  console.log(stringMidi);
 
   for (var i = 0; i < arrayNotes.length; i++) {
     for (var j = 0; j < arrayNotes[i].length; j++) {
@@ -289,8 +313,6 @@ function crearStringMidi() {
 
       arrayOrdenado.push([posInicio, ch, n, volInicio]);
       arrayOrdenado.push([posFinal, ch, n, volFinal]);
-
-
     }
   }
 
@@ -304,13 +326,16 @@ function crearStringMidi() {
     return a[0] - b[0];
   });
 
+  // Seguimos añadiendo al stringMidi
   for (var i = 0; i < arrayOrdenado.length; i++) {
     stringMidi += arrayOrdenado[i][0] + " On ch=" + arrayOrdenado[i][1] + " n=" + arrayOrdenado[i][2] + " v=" + arrayOrdenado[i][3] + "\n";
   }
 
-  stringMidi += arrayOrdenado[arrayOrdenado.length - 1][0] + META_TRKEND + "\n";
+  stringMidi += arrayOrdenado[arrayOrdenado.length - 1][0] + " " + META_TRKEND + "\n";
   stringMidi += TRKEND;
 
+  console.log(stringMidi);
+  select('textarea').value(stringMidi);
 }
 
 // 0 -> 127, 1 -> 126, 2 -> 125, ...
@@ -318,29 +343,8 @@ function numerarNotaMidiReal(notaSinTransformar) {
   return (notaSinTransformar - 127) * (-1);
 }
 
+/*
 function draw(){
-  /*
-  // The height for each key
-  var h = height / 128;
-  for (var i = 0; i < 128; i++) {
-    var y = i * h;
 
-
-    // If the mouse is over the key
-    if (mouseY > y && mouseY < y + h && mouseX < width) {
-      // If we're clicking
-      if (mouseIsPressed) {
-        fill(100,255,200);
-        // Or just rolling over
-      } else {
-        fill(127);
-      }
-    } else {
-      fill(200);
-    }
-
-    // Draw the key
-    rect(0, y, width-1, h-1);
-  }
-  */
 }
+*/
