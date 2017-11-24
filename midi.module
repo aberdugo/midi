@@ -188,15 +188,38 @@ function midi_fileload_form_submit($form, &$form_state) {
   */
   // Set a response to the user.
   drupal_set_message(t('The form has been submitted and the midi file has been saved temporarily, filename: @filename.', array('@filename' => $file->filename)));
-
-  // Pintamos canvas
-
 }
 
 function midi_createfile_form_validate($form, &$form_state) {
-  $stringMidi =
-  // Set a response to the user.
-  drupal_set_message(t('Midi file has been validate.'));
+  $stringMidi = $form_state['values']['miditext'];
+
+  if (strpos($stringMidi, 'MFile') !== false) {
+    $midi = new Midi(); // Midi - CONSTRUCTOR // (midi-class.inc)
+    $midi->importTxt($stringMidi); // importTxt - import whole MIDI song as text (mf2t-format) // (midi-class.inc)
+    midi_save_mid_file($midi);
+
+    /*
+    if ($file = file_move($file, 'temporary://')) {
+      // Save the file for use in the submit handler.
+      $form_state['storage']['stringMidi'] = $stringMidi;
+    }
+    else {
+      form_set_error('file', t("Failed to move the  file to the tmp site's file folder."));
+    }
+    */
+  }
+  else {
+    form_set_error('miditext', t('Midi text does not have the correct format.'));
+  }
+}
+
+function midi_save_mid_file(&$midi) {
+  if (count($midi->tracks) < 1) {
+    form_set_error('miditext', t('MIDI song has no tracks.'));
+  }
+  else {
+    drupal_set_message(t('Hola.'));
+  }
 }
 
 function midi_createfile_form_submit($form, &$form_state) {

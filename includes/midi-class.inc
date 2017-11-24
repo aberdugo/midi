@@ -216,37 +216,41 @@ class Midi{
   // import whole MIDI song as text (mf2t-format)
   //---------------------------------------------------------------
   function importTxt($txt){
-    $txt = trim($txt);
+    $txt = trim($txt); // trim — Strip whitespace (or other characters) from the beginning and end of a string
     // make unix text format
-    if (strpos($txt,"\r")!==false && strpos($txt,"\n")===false) // MAC
-      $txt = str_replace("\r","\n",$txt);
+    if (strpos($txt,"\r")!==false && strpos($txt,"\n")===false) // MAC // strpos — Find the position of the first occurrence of a substring in a string
+      $txt = str_replace("\r","\n",$txt); // str_replace — Replace all occurrences of the search string with the replacement string
     else // PC?
-      $txt = str_replace("\r",'',$txt);
+      $txt = str_replace("\r",'',$txt); // str_replace — Replace all occurrences of the search string with the replacement string
     $txt = $txt."\n";// makes things easier
 
-    $headerStr = strtok($txt,"\n");
-    $header = explode(' ',$headerStr); //"MFile $type $tc $timebase";
+    $headerStr = strtok($txt,"\n"); // strtok - strtok() splits a string (str) into smaller strings (tokens)
+    $header = explode(' ',$headerStr); //"MFile $type $tc $timebase"; // explode — Split a string by string
     $this->type = $header[1];
     $this->timebase = $header[3];
     $this->tempo = 0;
 
-    $trackStrings = explode("MTrk\n",$txt);
-    array_shift($trackStrings);
+    $trackStrings = explode("MTrk\n",$txt); // explode — Split a string by string
+    array_shift($trackStrings); // array_shift — Shift an element off the beginning of array
     $tracks = array();
     foreach ($trackStrings as $trackStr){
-      $track = explode("\n",$trackStr);
-      array_pop($track);
-      array_pop($track);
+      $track = explode("\n",$trackStr); // explode — Split a string by string
+      array_pop($track); // array_pop — Pop the element off the end of array
+      array_pop($track); // array_pop — Pop the element off the end of array
 
-      if ($track[0]=="TimestampType=Delta"){//delta
-        array_shift($track);
-        $track = $this->_delta2Absolute($track);
+      if (!empty($track)) { // New for control Drupal default errors
+        if ($track[0] == "TimestampType=Delta") {//delta
+          array_shift($track); // array_shift — Shift an element off the beginning of array
+          $track = $this->_delta2Absolute($track); // _delta2Absolute - converts all delta times in track to absolute times
+        }
+        $tracks[] = $track; // New for control Drupal errors, inside of this if (!empty($track))
       }
-
-      $tracks[] = $track;
     }
     $this->tracks = $tracks;
-    $this->_findTempo();
+
+    if (!empty($track)) { // New for control Drupal default errors
+      $this->_findTempo(); // _findTempo - search track 0 for set tempo msg
+    }
   }
 
   //---------------------------------------------------------------
@@ -520,21 +524,21 @@ class Midi{
   //---------------------------------------------------------------
   function getMid(){
     $tracks = $this->tracks;
-    $tc = count($tracks);
+    $tc = count($tracks); // count — Count all elements in an array, or something in an object
     $type = ($tc > 1)?1:0;
-    $midStr = "MThd\0\0\0\6\0".chr($type).$this->_getBytes($tc,2).$this->_getBytes($this->timebase,2);
+    $midStr = "MThd\0\0\0\6\0".chr($type).$this->_getBytes($tc,2).$this->_getBytes($this->timebase,2); // chr - Returns a one-character string containing the character specified by ascii. // _getBytes - int to bytes (length $len)
     for ($i=0;$i<$tc;$i++){
       $track = $tracks[$i];
-      $mc = count($track);
+      $mc = count($track); // count — Count all elements in an array, or something in an object
       $time = 0;
       $midStr .= "MTrk";
-      $trackStart = strlen($midStr);
+      $trackStart = strlen($midStr); // strlen - Returns the length of the given string.
 
       $last = '';
 
       for ($j=0;$j<$mc;$j++){
         $line = $track[$j];
-        $t = $this->_getTime($line);
+        $t = $this->_getTime($line); // _getTime - returns time code of message string
         $dt = $t - $time;
 
         // A: IGNORE EVENTS WITH INCORRECT TIMESTAMP
@@ -544,18 +548,18 @@ class Midi{
         #if ($dt<0) $this->_err('incorrect timestamp!');
 
         $time = $t;
-        $midStr .= $this->_writeVarLen($dt);
+        $midStr .= $this->_writeVarLen($dt); // _writeVarLen - int to variable length string
 
         // repetition, same event, same channel, omit first byte (smaller file size)
-        $str = $this->_getMsgStr($line);
+        $str = $this->_getMsgStr($line); // _getMsgStr - returns binary code for message string
         $start = ord($str[0]);
-        if ($start>=0x80 && $start<=0xEF && $start==$last) $str = substr($str, 1);
+        if ($start>=0x80 && $start<=0xEF && $start==$last) $str = substr($str, 1); // substr — Return part of a string
         $last = $start;
 
         $midStr .= $str;
       }
-      $trackLen = strlen($midStr) - $trackStart;
-      $midStr = substr($midStr,0,$trackStart).$this->_getBytes($trackLen,4).substr($midStr,$trackStart);
+      $trackLen = strlen($midStr) - $trackStart; // strlen — Get string length
+      $midStr = substr($midStr,0,$trackStart).$this->_getBytes($trackLen,4).substr($midStr,$trackStart); // substr — Return part of a string // int to bytes (length $len)
     }
     return $midStr;
   }
@@ -564,11 +568,11 @@ class Midi{
   // saves MIDI song as Standard MIDI File
   //---------------------------------------------------------------
   function saveMidFile($mid_path, $chmod=false){
-    if (count($this->tracks)<1) $this->_err('MIDI song has no tracks');
-    $SMF = fopen($mid_path, "wb"); // SMF
-    fwrite($SMF,$this->getMid());
-    fclose($SMF);
-    if ($chmod!==false) @chmod($mid_path, $chmod);
+    if (count($this->tracks)<1) $this->_err('MIDI song has no tracks'); // _err - error message
+    $SMF = fopen($mid_path, "wb"); // SMF // fopen — Opens file or URL
+    fwrite($SMF,$this->getMid()); // fwrite — Binary-safe file write // getMid - returns binary MIDI string
+    fclose($SMF); // fclose — Closes an open file pointer
+    if ($chmod!==false) @chmod($mid_path, $chmod); // fclose — Closes an open file pointer
   }
 
   //---------------------------------------------------------------
@@ -716,60 +720,60 @@ class Midi{
   // returns time code of message string
   //---------------------------------------------------------------
   function _getTime($msgStr){
-    return (int) strtok($msgStr,' ');
+    return (int) strtok($msgStr,' '); // strtok - strtok() splits a string (str) into smaller strings (tokens)
   }
 
   //---------------------------------------------------------------
   // returns binary code for message string
   //---------------------------------------------------------------
   function _getMsgStr($line){
-    $msg = explode(' ',$line);
+    $msg = explode(' ',$line); // explode — Split a string by string
     switch($msg[1]){
       case 'PrCh': // 0x0C
         eval("\$".$msg[2].';'); // chan
         eval("\$".$msg[3].';'); // prog
-        return chr(0xC0+$ch-1).chr($p);
+        return chr(0xC0+$ch-1).chr($p); // chr - Returns a one-character string containing the character specified by ascii.
         break;
       case 'On': // 0x09
         eval("\$".$msg[2].';'); // chan
         eval("\$".$msg[3].';'); // note
         eval("\$".$msg[4].';'); // vel
-        return chr(0x90+$ch-1).chr($n).chr($v);
+        return chr(0x90+$ch-1).chr($n).chr($v); // chr - Returns a one-character string containing the character specified by ascii.
         break;
       case 'Off': // 0x08
         eval("\$".$msg[2].';'); // chan
         eval("\$".$msg[3].';'); // note
         eval("\$".$msg[4].';'); // vel
-        return chr(0x80+$ch-1).chr($n).chr($v);
+        return chr(0x80+$ch-1).chr($n).chr($v); // chr - Returns a one-character string containing the character specified by ascii.
         break;
       case 'PoPr': // 0x0A = PolyPressure
         eval("\$".$msg[2].';'); // chan
         eval("\$".$msg[3].';'); // note
         eval("\$".$msg[4].';'); // val
-        return chr(0xA0+$ch-1).chr($n).chr($v);
+        return chr(0xA0+$ch-1).chr($n).chr($v); // chr - Returns a one-character string containing the character specified by ascii.
         break;
       case 'Par': // 0x0B = ControllerChange
         eval("\$".$msg[2].';'); // chan
         eval("\$".$msg[3].';'); // controller
         eval("\$".$msg[4].';'); // val
-        return chr(0xB0+$ch-1).chr($c).chr($v);
+        return chr(0xB0+$ch-1).chr($c).chr($v); // chr - Returns a one-character string containing the character specified by ascii.
         break;
       case 'ChPr': // 0x0D = ChannelPressure
         eval("\$".$msg[2].';'); // chan
         eval("\$".$msg[3].';'); // val
-        return chr(0xD0+$ch-1).chr($v);
+        return chr(0xD0+$ch-1).chr($v); // chr - Returns a one-character string containing the character specified by ascii.
         break;
       case 'Pb': // 0x0E = PitchBend
         eval("\$".$msg[2].';'); // chan
         eval("\$".$msg[3].';'); // val (2 Bytes!)
         $a = $v & 0x7f; // Bits 0..6
         $b = ($v >> 7) & 0x7f; // Bits 7..13
-        return chr(0xE0+$ch-1).chr($a).chr($b);
+        return chr(0xE0+$ch-1).chr($a).chr($b); // chr - Returns a one-character string containing the character specified by ascii.
         break;
       // META EVENTS
       case 'Seqnr': // 0x00 = sequence_number
-        $num = chr($msg[2]);
-        if ($msg[2]>255) $this->_err("code broken around Seqnr event");
+        $num = chr($msg[2]); // chr - Returns a one-character string containing the character specified by ascii.
+        if ($msg[2]>255) $this->_err("code broken around Seqnr event"); // _err - error message
         return "\xFF\x00\x02\x00$num";
         break;
       case 'Meta':
@@ -783,73 +787,74 @@ class Midi{
           case 'Marker': //0x06: // Meta Marker
           case 'Cue': //0x07: // Meta Cue
             $texttypes = array('Text','Copyright','TrkName','InstrName','Lyric','Marker','Cue');
-            $byte = chr(array_search($type,$texttypes)+1);
-            $start = strpos($line,'"')+1;
-            $end = strrpos($line,'"');
-            $txt = substr($line,$start,$end-$start);
-            $len = $this->_writeVarLen(strlen($txt)); // NEW
+            $byte = chr(array_search($type,$texttypes)+1); // chr - Returns a one-character string containing the character specified by ascii. // array_search — Searches the array for a given value and returns the first corresponding key if successful
+            $start = strpos($line,'"')+1; // strpos — Find the position of the first occurrence of a substring in a string
+            $end = strrpos($line,'"'); // strpos — Find the position of the first occurrence of a substring in a string
+            $txt = substr($line,$start,$end-$start); // substr — Return part of a string
+            $len = $this->_writeVarLen(strlen($txt)); // NEW // _writeVarLen - int to variable length string // strlen — Get string length
             return "\xFF$byte$len$txt";
             break;
           case 'TrkEnd': //0x2F
             return "\xFF\x2F\x00";
             break;
           case '0x20': // 0x20 = ChannelPrefix
-            $v = chr($msg[3]);
+            $v = chr($msg[3]); // chr - Returns a one-character string containing the character specified by ascii.
             return "\xFF\x20\x01$v";
             break;
           case '0x21': // 0x21 = ChannelPrefixOrPort
-            $v = chr($msg[3]);
+            $v = chr($msg[3]); // chr - Returns a one-character string containing the character specified by ascii.
             return "\xFF\x21\x01$v";
             break;
           default:
-            $this->_err("unknown meta event: $type");
+            $this->_err("unknown meta event: $type"); // _err - error message
+            return "\xFF\x00\x02\x00$num";
             exit();
         }
         break;
       case 'Tempo': // 0x51
-        $tempo = $this->_getBytes((int)$msg[2],3);
+        $tempo = $this->_getBytes((int)$msg[2],3); // _getBytes - int to bytes (length $len)
         return "\xFF\x51\x03$tempo";
         break;
       case 'SMPTE': // 0x54 = SMPTE offset
-        $h = chr($msg[2]);
-        $m = chr($msg[3]);
-        $s = chr($msg[4]);
-        $f = chr($msg[5]);
-        $fh = chr($msg[6]);
+        $h = chr($msg[2]); // chr - Returns a one-character string containing the character specified by ascii.
+        $m = chr($msg[3]); // chr - Returns a one-character string containing the character specified by ascii.
+        $s = chr($msg[4]); // chr - Returns a one-character string containing the character specified by ascii.
+        $f = chr($msg[5]); // chr - Returns a one-character string containing the character specified by ascii.
+        $fh = chr($msg[6]); // chr - Returns a one-character string containing the character specified by ascii.
         return "\xFF\x54\x05$h$m$s$f$fh";
         break;
       case 'TimeSig': // 0x58
-        $zt = explode('/',$msg[2]);
-        $z = chr($zt[0]);
-        $t = chr(log($zt[1])/log(2));
+        $zt = explode('/',$msg[2]); // explode — Split a string by string
+        $z = chr($zt[0]); // chr - Returns a one-character string containing the character specified by ascii.
+        $t = chr(log($zt[1])/log(2)); // chr - Returns a one-character string containing the character specified by ascii. // log — Natural logarithm
         $mc = chr($msg[3]);
         $c = chr($msg[4]);
         return "\xFF\x58\x04$z$t$mc$c";
         break;
       case 'KeySig': // 0x59
-        $vz = chr($msg[2]);
-        $g = chr(($msg[3]=='major')?0:1);
+        $vz = chr($msg[2]); // chr - Returns a one-character string containing the character specified by ascii.
+        $g = chr(($msg[3]=='major')?0:1); // chr - Returns a one-character string containing the character specified by ascii.
         return "\xFF\x59\x02$vz$g";
         break;
       case 'SeqSpec': // 0x7F = Sequencer specific data (Bs: 0 SeqSpec 00 00 41)
-        $cnt = count($msg)-2;
+        $cnt = count($msg)-2; // count — Count all elements in an array, or something in an object
         $data = '';
         for ($i=0;$i<$cnt;$i++)
-          $data.=$this->_hex2bin($msg[$i+2]);
-        $len = $this->_writeVarLen(strlen($data)); // NEW
+          $data.=$this->_hex2bin($msg[$i+2]); // _hex2bin - hexstr to binstr
+        $len = $this->_writeVarLen(strlen($data)); // NEW // _writeVarLen - int to variable length string
         return "\xFF\x7F$len$data";
         break;
       case 'SysEx': // 0xF0 = SysEx
-        $start = strpos($line,'f0');
-        $end = strrpos($line,'f7');
-        $data = substr($line,$start+3,$end-$start-1);
-        $data = $this->_hex2bin(str_replace(' ','',$data));
-        $len = chr(strlen($data));
+        $start = strpos($line,'f0'); // strpos — Find the position of the first occurrence of a substring in a string
+        $end = strrpos($line,'f7'); // strpos — Find the position of the first occurrence of a substring in a string
+        $data = substr($line,$start+3,$end-$start-1); // substr — Return part of a string
+        $data = $this->_hex2bin(str_replace(' ','',$data)); // _hex2bin - hexstr to binstr // str_replace — Replace all occurrences of the search string with the replacement string
+        $len = chr(strlen($data)); // chr - Returns a one-character string containing the character specified by ascii. // strlen — Get string length
         return "\xF0$len".$data;
         break;
 
       default:
-        @$this->_err('unknown event: '.$msg[1]);
+        @$this->_err('unknown event: '.$msg[1]); // _err - error message
         exit();
     }
   }
@@ -1104,9 +1109,9 @@ class Midi{
   //---------------------------------------------------------------
   function _findTempo(){
     $track = $this->tracks[0];
-    $mc = count($track);
+    $mc = count($track); // count — Count all elements in an array, or something in an object
     for ($i=0;$i<$mc;$i++){
-      $msg = explode(' ',$track[$i]);
+      $msg = explode(' ',$track[$i]); // explode — Split a string by string
       if ((int) $msg[0]>0) break;
       if ($msg[1]=='Tempo'){
         $this->tempo = $msg[2];
@@ -1300,7 +1305,7 @@ class Midi{
   function _getBytes($n,$len){
     $str='';
     for ($i=$len-1;$i>=0;$i--){
-      $str.=chr(floor($n/pow(256,$i)));
+      $str.=chr(floor($n/pow(256,$i))); // chr - Returns a one-character string containing the character specified by ascii. // floor — Round fractions down // pow - Returns base raised to the power of exp.
     }
     return $str;
   }
@@ -1363,3 +1368,5 @@ class Midi{
   }
 
 } // END OF CLASS
+
+?>
