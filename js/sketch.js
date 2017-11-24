@@ -70,6 +70,8 @@ for (var i = 0; i < 128; i++) {
 var estaBorrando = false;
 
 function setup() {
+  document.getElementById("edit-miditext").readOnly = true;
+  
   spanDuracion = createSpan('4 cuadrado(s)');
   spanDuracion.parent("buttons");
 
