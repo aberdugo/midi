@@ -71,7 +71,7 @@ var estaBorrando = false;
 
 function setup() {
   document.getElementById("edit-miditext").readOnly = true;
-  
+
   spanDuracion = createSpan('4 cuadrado(s)');
   spanDuracion.parent("buttons");
 
@@ -104,6 +104,14 @@ function setup() {
 
   // Move the canvas so it's inside our <div id="pianoroll">.
   canvas.parent('pianoroll');
+
+  // Disabling right click context menu on a HTML Canvas
+  document.addEventListener('contextmenu', function(e) {
+    var elem = e.target.closest('canvas');
+    if (elem) {
+      e.preventDefault();
+    }
+  }, false);
 
   /*
   if (Drupal.settings.midi.dosmasdos === 4) {
