@@ -69,6 +69,8 @@ for (var i = 0; i < 128; i++) {
 
 var estaBorrando = false;
 
+var osc;
+
 function setup() {
   document.getElementById("edit-miditext").readOnly = true;
 
@@ -158,6 +160,15 @@ function setup() {
     i = i + BEAT_WIDTH;
   }
   noStroke();
+
+  osc = new p5.Oscillator();
+  osc.setType('sine');
+  osc.freq(240);
+  // A triangle oscillator
+  //osc = new p5.TriOsc();
+  // Start silent
+  osc.start();
+  osc.amp(0);
 }
 
 function cambiarDuracion() {
@@ -201,6 +212,9 @@ function clickCanvas() { // user click the canvas
 
     console.log(esPintable);
     if (esPintable) {
+      // Sonido tecla pulsada con su duración.
+      playNote(numerarNotaMidiReal(notaY));
+
       fill(36, 231, 17); // Verde puro
       // Draw the key
       if ((posX + keyWidth) % 384 == 0) {
@@ -351,6 +365,26 @@ function crearMidiText() {
 // 0 -> 127, 1 -> 126, 2 -> 125, ...
 function numerarNotaMidiReal(notaSinTransformar) {
   return (notaSinTransformar - 127) * (-1);
+}
+
+// A function to play a note
+function playNote(note, duration) {
+  osc.freq(midiToFreq(note));
+  // Fade it in
+  osc.fade(0.5,0.2);
+
+  osc.fade(0,0.5);
+
+  // If we sest a duration, fade it out
+  if (duration) {
+    setTimeout(function() {
+      osc.fade(0,0.2);
+    }, duration-50);
+  }
+}
+
+function getDurationMilisegundos() {
+  return 500 * keyWidth / 96; // 500 milisegundos en 120 BPM (Beats por minuto)
 }
 
 /*
