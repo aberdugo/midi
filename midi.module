@@ -89,7 +89,7 @@ function midi_block_view($delta = '') {
               $path . '/js/p5.sound.js',
               $path . '/js/sketch.js',
               array(
-                'data' => array('midi' => array('dosmasdos' => 4)),
+                'data' => array('midi_module_path' => $path),
                 'type' => 'setting',),
             ),
           ),

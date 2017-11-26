@@ -35,6 +35,18 @@ const NOTES = [
   'C10','C#10','D10','D#10','E10','F10','F#10','G10'
 ];
 
+const MP3_OGG_SOUNDS = [
+  'C8',
+  'B7', 'As7', 'A7', 'Gs7', 'G7', 'Fs7', 'F7', 'E7', 'Ds7', 'D7', 'Cs7', 'C7',
+  'B6', 'As6', 'A6', 'Gs6', 'G6', 'Fs6', 'F6', 'E6', 'Ds6', 'D6', 'Cs6', 'C6',
+  'B5', 'As5', 'A5', 'Gs5', 'G5', 'Fs5', 'F5', 'E5', 'Ds5', 'D5', 'Cs5', 'C5',
+  'B4', 'As4', 'A4', 'Gs4', 'G4', 'Fs4', 'F4', 'E4', 'Ds4', 'D4', 'Cs4', 'C4',
+  'B3', 'As3', 'A3', 'Gs3', 'G3', 'Fs3', 'F3', 'E3', 'Ds3', 'D3', 'Cs3', 'C3',
+  'B2', 'As2', 'A2', 'Gs2', 'G2', 'Fs2', 'F2', 'E2', 'Ds2', 'D2', 'Cs2', 'C2',
+  'B1', 'As1', 'A1', 'Gs1', 'G1', 'Fs1', 'F1', 'E1', 'Ds1', 'D1', 'Cs1', 'C1',
+  'B0', 'As0', 'A0'
+];
+
 const MFILE = "MFile 0 1 96";
 const MTRK = "MTrk";
 const META_TRKEND = "Meta TrkEnd";
@@ -71,7 +83,45 @@ var estaBorrando = false;
 
 var osc;
 
+var mySound, mySound2, myPhrase, myPart;
+var soundPianoNotes = [];
+var pattern = [4];
+
+function preload() {
+  mySound = loadSound([
+    Drupal.settings.midi_module_path + '/assets/17088__beskhu__upright-piano-multisamples/277062__beskhu__31-g1.aiff',
+    Drupal.settings.midi_module_path + '/assets/17088__beskhu__upright-piano-multisamples/277062__beskhu__31-g1.aiff'
+  ]);
+  /*
+ for (var i = 7; i < 95; i++) { // 95 - 7 = 88 teclas
+   soundPianoNotes[i] = loadSound([
+     Drupal.settings.midi_module_path + '/assets/salamander/' + MP3_OGG_SOUNDS[(i - 7)] + '.mp3',
+     Drupal.settings.midi_module_path + '/assets/salamander/' + MP3_OGG_SOUNDS[(i - 7)] + '.ogg'
+   ]);
+ }
+ */
+  /*
+ mySound = loadSound([
+   Drupal.settings.midi_module_path + '/assets/salamander/' + MP3_OGG_SOUNDS[0] + '.mp3',
+   Drupal.settings.midi_module_path + '/assets/salamander/' + MP3_OGG_SOUNDS[0] + '.ogg'
+ ]);*/
+  /*
+ mySound2 = loadSound([
+   Drupal.settings.midi_module_path + '/assets/salamander/' + MP3_OGG_SOUNDS[1] + '.mp3',
+   Drupal.settings.midi_module_path + '/assets/salamander/' + MP3_OGG_SOUNDS[1] + '.ogg'
+ ]);
+
+*/
+  // console.log(soundPianoNotes);
+}
+
 function setup() {
+  masterVolume(0.5);
+  myPhrase = new p5.Phrase('bbox', makeSound, pattern);
+  myPart = new p5.Part();
+  myPart.addPhrase(myPhrase);
+  myPart.setBPM(120);
+
   document.getElementById("edit-miditext").readOnly = true;
 
   spanDuracion = createSpan('4 cuadrado(s)');
@@ -114,12 +164,6 @@ function setup() {
       e.preventDefault();
     }
   }, false);
-
-  /*
-  if (Drupal.settings.midi.dosmasdos === 4) {
-    alert('Got it!');
-  }
-  */
 
   // Pintamos (canvas) los rectángulos de fondo inicialmente
   for (var note = 0; note < 128; note++) {
@@ -171,6 +215,13 @@ function setup() {
   osc.amp(0);
 }
 
+function makeSound(time, playbackRate) {
+  mySound.rate(playbackRate);
+  mySound.play(time);
+}
+
+
+
 function cambiarDuracion() {
   spanDuracion.html(sliderKeyWidth.value() + " cuadrado(s)");
 }
@@ -213,7 +264,9 @@ function clickCanvas() { // user click the canvas
     console.log(esPintable);
     if (esPintable) {
       // Sonido tecla pulsada con su duración.
-      playNote(numerarNotaMidiReal(notaY));
+      // playNote(numerarNotaMidiReal(notaY));
+
+       // myPart.start();
 
       fill(36, 231, 17); // Verde puro
       // Draw the key
