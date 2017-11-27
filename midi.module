@@ -116,6 +116,7 @@ function midi_fileload_form($form, &$form_state) {
     '#value' => t('Load Midi'),
   );
 
+  $hola = "hola";
   $form['miditext'] = array(
     '#type' => 'textarea',
     '#title' => t(' Midi text '),
@@ -124,7 +125,7 @@ function midi_fileload_form($form, &$form_state) {
 
   $form['submitCreate'] = array(
     '#type' => 'submit',
-    '#value' => t('Create Midi'),
+    '#value' => t('Create Midi file'),
     '#submit' => array('midi_createfile_form_submit'),
     '#validate' => array('midi_createfile_form_validate'),
   );
@@ -196,7 +197,9 @@ function midi_createfile_form_validate($form, &$form_state) {
   if (strpos($stringMidi, 'MFile') !== false) {
     $midi = new Midi(); // Midi - CONSTRUCTOR // (midi-class.inc)
     $midi->importTxt($stringMidi); // importTxt - import whole MIDI song as text (mf2t-format) // (midi-class.inc)
-    midi_save_mid_file($midi);
+    // midi_save_mid_file($midi);
+
+    // $form_state['storage']['stringmidi'] = $stringMidi;
 
     /*
     if ($file = file_move($file, 'temporary://')) {
@@ -213,6 +216,7 @@ function midi_createfile_form_validate($form, &$form_state) {
   }
 }
 
+/*
 function midi_save_mid_file(&$midi) {
   if (count($midi->tracks) < 1) {
     form_set_error('miditext', t('MIDI song has no tracks.'));
@@ -221,11 +225,14 @@ function midi_save_mid_file(&$midi) {
     drupal_set_message(t('Hola.'));
   }
 }
+*/
 
 function midi_createfile_form_submit($form, &$form_state) {
+  // $stringMidi = $form_state['storage']['stringmidi'];
+
   // Set a response to the user.
   drupal_set_message(t('Midi file has been created.'));
-  $hola = "hola";
+  drupal_set_message(t($form_state['values']['miditext']));
 }
 /*
  * Para traducir los textos de dentro de la función t() (Configuración/REGIONAL E IDIOMA-Traducir interfaz/TRADUCIR)

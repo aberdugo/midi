@@ -91,12 +91,13 @@ var estaBorrando = false;
 var osc;
 
 var mySound, myPhrase, myPart;
-var soundPianoNotes = [];
+var soundOfPianoNotes = [];
 var pattern = [1];
 
 var idInterval;
 
 function preload() {
+  // Progress Bar
   divProgress = createDiv("").id("progress");
   divProgress.parent("pianoroll");
 
@@ -115,8 +116,9 @@ function preload() {
   }, 240);
 
 
+  // Load soundOfPianoNotes audios
   for (var i = 0; i < 88; i++) { // 88 teclas
-    soundPianoNotes[i] = loadSound([
+    soundOfPianoNotes[i] = loadSound([
       Drupal.settings.midi_module_path + '/assets/piano_sounds/' + MP3_OGG_SOUNDS[i] + '.mp3',
       Drupal.settings.midi_module_path + '/assets/piano_sounds/' + MP3_OGG_SOUNDS[i] + '.ogg'
     ]);
@@ -124,8 +126,8 @@ function preload() {
 }
 
 function setup() {
-  clearInterval(idInterval);
-  divProgress.remove();
+  clearInterval(idInterval); // Stop progress bar
+  divProgress.remove(); // Remove progress bar
 
   document.getElementById("edit-miditext").readOnly = true;
 
@@ -245,7 +247,7 @@ function clickCanvas() { // user click the canvas
   var posY = Math.floor(mouseY / BEAT_HEIGHT) * BEAT_HEIGHT;
 
   if (notaY) {
-    soundPianoNotes[notaY].stop();
+    soundOfPianoNotes[notaY].stop();
   }
 
   notaY = posY / BEAT_HEIGHT;
@@ -272,7 +274,7 @@ function clickCanvas() { // user click the canvas
       // Sonido tecla pulsada con su duración.
       // playNote(numerarNotaMidiReal(notaY));
 
-      soundPianoNotes[notaY].play();
+      soundOfPianoNotes[notaY].play();
 
       /*
       myPhrase = new p5.Phrase('piano_sound', makeSound, pattern);
@@ -363,8 +365,8 @@ function clickCanvas() { // user click the canvas
 
 /*
 function makeSound(time, playbackRate) {
-  soundPianoNotes[notaY].rate(playbackRate);
-  soundPianoNotes[notaY].play(time);
+  soundOfPianoNotes[notaY].rate(playbackRate);
+  soundOfPianoNotes[notaY].play(time);
   console.log(getDurationEnSegundos());
 }
 */
