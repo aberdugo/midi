@@ -3,7 +3,7 @@ const BEAT_HEIGHT = 24; // altura de cada beat
 const TEXT_SIZE = BEAT_HEIGHT - 16; // El tamaño de fuente del texto de la tecla pulsada
 const MIN_WIDTH_FOR_TEXT = 24; // Anchura mínima de la nota pintada para que dibuje el texto de la nota (Ej. C#5)
 const TEXT_NOTES = [
-                                                                         'C8',
+  'C8',
   'B7', 'A#7', 'A7', 'G#7', 'G7', 'F#7', 'F7', 'E7', 'D#7', 'D7', 'C#7', 'C7',
   'B6', 'A#6', 'A6', 'G#6', 'G6', 'F#6', 'F6', 'E6', 'D#6', 'D6', 'C#6', 'C6',
   'B5', 'A#5', 'A5', 'G#5', 'G5', 'F#5', 'F5', 'E5', 'D#5', 'D5', 'C#5', 'C5',
@@ -71,6 +71,10 @@ var sliderKeyWidth;
 var buttonPintar;
 var buttonBorrar;
 var buttonCrearMidiText;
+
+var divProgress;
+var divBar;
+
 var canvas;
 var notaY;
 
@@ -90,8 +94,27 @@ var mySound, myPhrase, myPart;
 var soundPianoNotes = [];
 var pattern = [1];
 
+var idInterval;
 
 function preload() {
+  divProgress = createDiv("").id("progress");
+  divProgress.parent("pianoroll");
+
+  divBar = createDiv("Loading Pianoroll...").id("bar");
+  divBar.parent(divProgress);
+
+  var widthBar = 30;
+  idInterval = setInterval(function(){
+    if (widthBar >= 100) {
+      widthBar = 20;
+    }
+    else {
+      widthBar += 10;
+      divBar.style("width", widthBar + "%");
+    }
+  }, 240);
+
+
   for (var i = 0; i < 88; i++) { // 88 teclas
     soundPianoNotes[i] = loadSound([
       Drupal.settings.midi_module_path + '/assets/piano_sounds/' + MP3_OGG_SOUNDS[i] + '.mp3',
@@ -101,6 +124,9 @@ function preload() {
 }
 
 function setup() {
+  clearInterval(idInterval);
+  divProgress.remove();
+
   document.getElementById("edit-miditext").readOnly = true;
 
   spanDuracion = createSpan('4 cuadrado(s)');
