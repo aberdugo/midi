@@ -72,10 +72,13 @@ function midi_block_view($delta = '') {
       if (user_access('access content')) {
         $path = drupal_get_path('module', 'midi');
         $block['content'] = array( // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
-          'part1' => array(
+          /*'part1' => array(
             '#markup' =>  midi_fileload_get_form(),
-          ),
+          ),*/
           'part2' => array(
+            '#markup' =>  midi_savefile_get_form(),
+          ),
+          'part3' => array(
             '#theme' => 'midi_box',
             // '#markup' => theme('midi_box'), // t('Put here the form if could be.');
           ),
@@ -116,22 +119,9 @@ function midi_fileload_form($form, &$form_state) {
     '#value' => t('Load Midi'),
   );
 
-  $hola = "hola";
-  $form['miditext'] = array(
-    '#type' => 'textarea',
-    '#title' => t(' Midi text '),
-    '#required' => TRUE,
-  );
-
-  $form['submitCreate'] = array(
-    '#type' => 'submit',
-    '#value' => t('Create Midi file'),
-    '#submit' => array('midi_createfile_form_submit'),
-    '#validate' => array('midi_createfile_form_validate'),
-  );
-
   return $form;
 }
+
 
 function midi_fileload_get_form() {
   $form = drupal_get_form('midi_fileload_form');
@@ -139,6 +129,7 @@ function midi_fileload_get_form() {
 
   return $output;
 }
+
 
 /**
  * Validate handler for midi_fileload_form().
@@ -191,7 +182,90 @@ function midi_fileload_form_submit($form, &$form_state) {
   drupal_set_message(t('The form has been submitted and the midi file has been saved temporarily, filename: @filename.', array('@filename' => $file->filename)));
 }
 
-function midi_createfile_form_validate($form, &$form_state) {
+
+/**
+ *  Form constructor for the midi_savefile_form.
+ */
+function midi_savefile_form($form, &$form_state) {
+  $form['msg'] = array(
+    '#type' => 'markup',
+    '#prefix' => '<div id="msg">',
+    '#suffix' => '</div>',
+  );
+
+  $form['miditext'] = array(
+    '#type' => 'textarea',
+    '#title' => t(' Midi text '),
+    '#required' => TRUE,
+  );
+
+  $form['submitCreate'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save Midi file'),
+    '#ajax' => array(
+      'callback' => 'midi_savefile_submit_ajax_callback',
+      'wrapper' => 'msg',
+    ),
+  );
+
+  return $form;
+}
+
+function midi_savefile_get_form() {
+  $form = drupal_get_form('midi_savefile_form');
+  $output = drupal_render($form);
+
+  return $output;
+}
+
+
+/**
+ * Callback for save midi to DataBase.
+ *
+ * Select the 'box' element, change the markup in it, and return it as a
+ * renderable array.
+ *
+ * @return array
+ *   Renderable array (the box element)
+ */
+
+function midi_savefile_submit_ajax_callback($form, $form_state) {
+  // In most cases, it is recommended that you put this logic in form generation
+  // rather than the callback. Submit driven forms are an exception, because
+  // you may not want to return the form at all.
+
+  $element = $form['msg'];
+
+  $stringMidi = $form_state['values']['miditext'];
+
+  if (!empty($stringMidi)) {
+    drupal_set_message(t("Clicked submit ({$form_state['values']['op']}): " . date('c')));
+    $element['#markup'] = "Clicked submit ({$form_state['values']['op']}): " . date('c');
+
+    if (strpos($stringMidi, 'MFile') !== false) {
+      $midi = new Midi(); // Midi - CONSTRUCTOR // (midi-class.inc)
+      $midi->importTxt($stringMidi); // importTxt - import whole MIDI song as text (mf2t-format) // (midi-class.inc)
+      // midi_save_mid_file($midi);
+      $binaryMidi = $midi->getMid();
+
+      /*
+      global $user;
+      $file = file_save_data($binaryMidi,'private://' . $user->name . '.mid');
+      */
+
+      // $form_state['storage']['stringmidi'] = $stringMidi;
+      // $form_state['rebuild'] = TRUE;
+    }
+    else {
+      form_set_error('miditext', t('Midi text does not have the correct format.'));
+    }
+  }
+
+  return $element;
+}
+
+/*
+function midi_savefile_form_validate($form, &$form_state) {
   $stringMidi = $form_state['values']['miditext'];
 
   if (strpos($stringMidi, 'MFile') !== false) {
@@ -200,6 +274,7 @@ function midi_createfile_form_validate($form, &$form_state) {
     // midi_save_mid_file($midi);
 
     // $form_state['storage']['stringmidi'] = $stringMidi;
+    // $form_state['rebuild'] = TRUE;
 
     /*
     if ($file = file_move($file, 'temporary://')) {
@@ -210,11 +285,12 @@ function midi_createfile_form_validate($form, &$form_state) {
       form_set_error('file', t("Failed to move the  file to the tmp site's file folder."));
     }
     */
-  }
-  else {
-    form_set_error('miditext', t('Midi text does not have the correct format.'));
-  }
+/*}
+ else {
+   form_set_error('miditext', t('Midi text does not have the correct format.'));
+ }
 }
+*/
 
 /*
 function midi_save_mid_file(&$midi) {
@@ -227,6 +303,7 @@ function midi_save_mid_file(&$midi) {
 }
 */
 
+/*
 function midi_createfile_form_submit($form, &$form_state) {
   // $stringMidi = $form_state['storage']['stringmidi'];
 
@@ -234,6 +311,7 @@ function midi_createfile_form_submit($form, &$form_state) {
   drupal_set_message(t('Midi file has been created.'));
   drupal_set_message(t($form_state['values']['miditext']));
 }
+*/
 /*
  * Para traducir los textos de dentro de la función t() (Configuración/REGIONAL E IDIOMA-Traducir interfaz/TRADUCIR)
  */

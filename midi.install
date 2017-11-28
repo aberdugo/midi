@@ -1,0 +1,10 @@
+<?php
+/**
+ * Implements hook_schema().
+ */
+function midi_schema() {
+  $schema['mytable1'] = array(
+    // specification for mytable1
+  );
+  return $schema;
+}

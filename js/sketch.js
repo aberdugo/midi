@@ -54,6 +54,7 @@ const MTRK = "MTrk";
 const META_TRKEND = "Meta TrkEnd";
 const TRKEND = "TrkEnd";
 
+var buttonSaveMidiFile;
 /*
 keyWidht
 384 -> redonda
@@ -70,7 +71,7 @@ var spanDuracion;
 var sliderKeyWidth;
 var buttonPintar;
 var buttonBorrar;
-var buttonCrearMidiText;
+// var buttonCrearMidiText;
 
 var divProgress;
 var divBar;
@@ -151,10 +152,13 @@ function setup() {
   buttonBorrar.parent("buttons");
   buttonBorrar.mousePressed(changeErase);
 
-  // Botón CrearMidiText
+  // Botón SaveMidiFile
+  buttonSaveMidiFile = select('#edit-submitcreate');
+  /*
   buttonCrearMidiText = createButton("Crear Midi text");
   buttonCrearMidiText.parent("buttons").hide();
   buttonCrearMidiText.mousePressed(crearMidiText);
+  */
 
   // Creamos el canvas
   canvas = createCanvas(BEAT_WIDTH * 64, BEAT_HEIGHT * 88);
@@ -308,6 +312,7 @@ function clickCanvas() { // user click the canvas
       }
 
 
+
     }
   }
   else if (estaBorrando) {
@@ -352,7 +357,6 @@ function clickCanvas() { // user click the canvas
 
         // Borramos la notaPulsada del arrayNotes
         arrayNotes[notaY].splice(i, 1);
-        select('textarea').value("");
       }
       i++;
     }
@@ -360,7 +364,7 @@ function clickCanvas() { // user click the canvas
     noStroke();
   }
 
-  habilitarCrearMidiText();
+  habilitarSaveMidiFile();
 }
 
 /*
@@ -371,7 +375,7 @@ function makeSound(time, playbackRate) {
 }
 */
 
-function habilitarCrearMidiText() {
+function habilitarSaveMidiFile() {
   var contieneNotas = false;
   var i = 0;
   while (i < arrayNotes.length && !contieneNotas) {
@@ -382,11 +386,22 @@ function habilitarCrearMidiText() {
   }
 
   if (contieneNotas) {
+    crearMidiText();
+    buttonSaveMidiFile.show();
+    // buttonSaveMidiFile.style("display", "inline");
+
+    /*
     buttonCrearMidiText.show();
     buttonCrearMidiText.style("display", "inline");
+    */
   }
   else {
+    buttonSaveMidiFile.hide();
+    select('textarea').value(""); // erase textarea value
+
+    /*
     buttonCrearMidiText.hide();
+    */
   }
 }
 
