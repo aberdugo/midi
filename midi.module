@@ -146,17 +146,6 @@ function midi_fileload_form_validate($form, &$form_state) {
   // If the file passed validation:
   if ($file) {
     $form_state['storage']['file'] = $file;
-
-    /*
-    // Move the file into the Drupal file system.
-    if ($file = file_move($file, 'temporary://')) {
-      // Save the file for use in the submit handler.
-      $form_state['storage']['file'] = $file;
-    }
-    else {
-      form_set_error('file', t("Failed to move the uploaded file to the tmp site's file folder."));
-    }
-    */
   }
   else {
     form_set_error('file', t('No file was uploaded.'));
@@ -248,13 +237,18 @@ function midi_savefile_submit_ajax_callback($form, $form_state) {
       // midi_save_mid_file($midi);
       $binaryMidi = $midi->getMid();
 
-      /*
       global $user;
-      $file = file_save_data($binaryMidi,'private://' . $user->name . '.mid');
-      */
 
-      // $form_state['storage']['stringmidi'] = $stringMidi;
-      // $form_state['rebuild'] = TRUE;
+      // Insertamos registro en la tabla file_binary_midi
+      $result = db_insert('file_binary_midi')
+        ->fields(array(
+          'uid' => $user->uid,
+          'filename' => $user->name . ".mid",
+          'bmidistring' => $binaryMidi,
+          'filesize' => strlen($binaryMidi),
+          'timestamp' => REQUEST_TIME,
+        ))
+        ->execute();
     }
     else {
       form_set_error('miditext', t('Midi text does not have the correct format.'));
@@ -264,54 +258,79 @@ function midi_savefile_submit_ajax_callback($form, $form_state) {
   return $element;
 }
 
-/*
-function midi_savefile_form_validate($form, &$form_state) {
-  $stringMidi = $form_state['values']['miditext'];
+/**
+ * Implements hook_menu().
+ */
+function midi_menu() {
+  $items = array();
+  $items['midi_files'] = array(
+    'title' => 'Download Midi Files',
+    'description' => 'Download Midi Files (description)',
+    'page callback' => 'midi_links_page',
+    'access callback' => TRUE, // Función de retorno para determinar si el usuario tiene acceso o no a la página. (user_access() por defecto).
+  );
+  $items['midi_files/download/%'] = array(
+    'page callback' => 'midi_filedownload',
+    'page arguments' => array(2),
+    'access callback' => TRUE, // Función de retorno para determinar si el usuario tiene acceso o no a la página. (user_access() por defecto).
+    'type' => MENU_CALLBACK,
+  );
 
-  if (strpos($stringMidi, 'MFile') !== false) {
-    $midi = new Midi(); // Midi - CONSTRUCTOR // (midi-class.inc)
-    $midi->importTxt($stringMidi); // importTxt - import whole MIDI song as text (mf2t-format) // (midi-class.inc)
-    // midi_save_mid_file($midi);
-
-    // $form_state['storage']['stringmidi'] = $stringMidi;
-    // $form_state['rebuild'] = TRUE;
-
-    /*
-    if ($file = file_move($file, 'temporary://')) {
-      // Save the file for use in the submit handler.
-      $form_state['storage']['stringMidi'] = $stringMidi;
-    }
-    else {
-      form_set_error('file', t("Failed to move the  file to the tmp site's file folder."));
-    }
-    */
-/*}
- else {
-   form_set_error('miditext', t('Midi text does not have the correct format.'));
- }
+  return $items;
 }
-*/
 
-/*
-function midi_save_mid_file(&$midi) {
-  if (count($midi->tracks) < 1) {
-    form_set_error('miditext', t('MIDI song has no tracks.'));
+function midi_links_page() {
+  $result = get_midis_user();
+
+  $midi_links = array();
+
+  foreach ($result as $midi_link) {
+    $midi_links[] = array(
+      'data'=> l($midi_link->filename, 'midi_files/download/' . $midi_link->fid),
+    );
+  }
+
+  if(empty($midi_links)) {
+    return t("You don't have midis in database.");
   }
   else {
-    drupal_set_message(t('Hola.'));
+    $output = theme('item_list', array('items' => $midi_links));
+    return $output;
   }
 }
-*/
 
-/*
-function midi_createfile_form_submit($form, &$form_state) {
-  // $stringMidi = $form_state['storage']['stringmidi'];
+// function get midis for user
+function get_midis_user() {
+  global $user;
 
-  // Set a response to the user.
-  drupal_set_message(t('Midi file has been created.'));
-  drupal_set_message(t($form_state['values']['miditext']));
+  // Tomamos registro de la tabla file_binary_midi
+  $result = db_select('file_binary_midi', 'm')
+    ->fields('m')
+    ->condition('uid', $user->uid, '=')
+    ->orderBy('filename')
+    ->execute();
+
+  return $result;
 }
-*/
+
+function midi_filedownload($midi_filename_fid) {
+  // Tomamos registro de la tabla file_binary_midi
+  $result = db_select('file_binary_midi', 'm')
+    ->fields('m')
+    ->condition('fid', $midi_filename_fid, '=')
+    ->execute();
+
+  foreach ($result as $file) {
+    drupal_add_http_header("Content-length: ". $file->filesize);
+    drupal_add_http_header("Content-type: " . $file->filemime);
+    drupal_add_http_header("Content-Disposition: attachment; filename=" . $file->filename);
+
+    print($file->bmidistring);
+
+    drupal_page_footer();
+  }
+}
+
 /*
  * Para traducir los textos de dentro de la función t() (Configuración/REGIONAL E IDIOMA-Traducir interfaz/TRADUCIR)
  */
