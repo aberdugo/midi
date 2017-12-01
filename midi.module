@@ -321,9 +321,9 @@ function midi_filedownload($midi_filename_fid) {
     ->execute();
 
   foreach ($result as $file) {
-    drupal_add_http_header("Content-length: ". $file->filesize);
-    drupal_add_http_header("Content-type: " . $file->filemime);
-    drupal_add_http_header("Content-Disposition: attachment; filename=" . $file->filename);
+    drupal_add_http_header('Content-length', $file->filesize);
+    drupal_add_http_header('Content-type', $file->filemime);
+    drupal_add_http_header('Content-Disposition','attachment; filename=' . $file->filename);
 
     print($file->bmidistring);
 
