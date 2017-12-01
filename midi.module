@@ -38,9 +38,13 @@ function midi_block_info() {
   // Declaración del bloque
   $blocks['midi_block'] = array(
     // The name tha will appear in the block list.
-    'info' => t('Midi box'), // (obligatorio). Nombre del bloque que aparecerá en el listado de bloques de administración. (Estructura/Bloques)
-    // Default setting.
-    'cache' => DRUPAL_CACHE_PER_ROLE, // (opcional). Define el tipo de caché.
+    'info' => t('Midi box'), // info (obligatorio) - Nombre del bloque que aparecerá en el listado de bloques de administración. (Estructura/Bloques)
+    'status' => 1, // status (opcional) - Valor inicial de estado del bloque (1 = habilitado, 0 = deshabilitado).
+    'weight' => 0, // weight (opcional) - Valor inicial del peso de ordenación del bloque.
+    'region' => 'highlighted', // region (opcional) - Valor inicial de la región en la que se muestra el bloque. Si el tema no dispone de la región indicada, el bloque se mostrará deshabilitado. // highlighted - Destacado.
+    'visibility' => BLOCK_VISIBILITY_LISTED, // visibility (opcional) - Valor inicial de visibilidad del bloque. // BLOCK_VISIBILITY_LISTED - Se muestra sólo en las páginas indicadas.
+    'pages' => '<front>', // pages (opcional) - Listado de URLs o código PHP relacionado con la opción visibility. // <front>
+    'cache' => DRUPAL_CACHE_PER_ROLE, // cache (opcional) - Define el tipo de caché. // DRUPAL_CACHE_PER_ROLE (predeterminada) - El bloque puede cambiar en función de los roles del usuario que visita la página.
   );
 
   return $blocks;
@@ -66,10 +70,12 @@ function midi_theme($existing, $type, $theme, $path) {
  * Prepares the contents of the block.
  */
 function midi_block_view($delta = '') {
+  $block = array();
+
   switch ($delta) {
     case 'midi_block':
-      $block['subject'] = t('Mi primer bloque midi'); // Indicamos el título predeterminado del bloque. Si el bloque no tiene un título predeterminado, debemos indicar NULL.
-      if (user_access('access content')) {
+      if (user_access('view block midi block')) {
+        $block['subject'] = t('Mi primer bloque midi'); // Indicamos el título predeterminado del bloque. Si el bloque no tiene un título predeterminado, debemos indicar NULL.
         $path = drupal_get_path('module', 'midi');
         $block['content'] = array( // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
           /*'part1' => array(
@@ -98,9 +104,21 @@ function midi_block_view($delta = '') {
           ),
         );
       }
-      return $block; // En vez de break; here
+      break;
   }
-  // y return $block here
+  return $block;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function midi_permission() {
+  return array(
+    'view block midi block' => array(
+      'title' => t('View block: Midi box'),
+      'description' => t('View the Midi box block.'),
+    ),
+  );
 }
 
 
@@ -269,9 +287,9 @@ function midi_menu() {
     'page callback' => 'midi_links_page',
     'access callback' => TRUE, // Función de retorno para determinar si el usuario tiene acceso o no a la página. (user_access() por defecto).
   );
-  $items['midi_files/download/%'] = array(
+  $items['midi_files/download/%/%'] = array(
     'page callback' => 'midi_filedownload',
-    'page arguments' => array(2),
+    'page arguments' => array(2, 3),
     'access callback' => TRUE, // Función de retorno para determinar si el usuario tiene acceso o no a la página. (user_access() por defecto).
     'type' => MENU_CALLBACK,
   );
@@ -286,7 +304,7 @@ function midi_links_page() {
 
   foreach ($result as $midi_link) {
     $midi_links[] = array(
-      'data'=> l($midi_link->filename, 'midi_files/download/' . $midi_link->fid),
+      'data'=> l($midi_link->filename, 'midi_files/download/' . $midi_link->uid . '/' . $midi_link->fid),
     );
   }
 
@@ -313,21 +331,44 @@ function get_midis_user() {
   return $result;
 }
 
-function midi_filedownload($midi_filename_fid) {
-  // Tomamos registro de la tabla file_binary_midi
-  $result = db_select('file_binary_midi', 'm')
-    ->fields('m')
-    ->condition('fid', $midi_filename_fid, '=')
-    ->execute();
+function midi_filedownload($midi_file_uid, $midi_file_fid) {
+  global $user;
+  $bFileExists = false;
 
-  foreach ($result as $file) {
-    drupal_add_http_header('Content-length', $file->filesize);
-    drupal_add_http_header('Content-type', $file->filemime);
-    drupal_add_http_header('Content-Disposition','attachment; filename=' . $file->filename);
+  if (isset($user->name)) {
+    $username = $user->name;
+  }
+  else {
+    $username = "Anonymous user";
+  }
 
-    print($file->bmidistring);
+  if ($user->uid == $midi_file_uid) {
+    // Tomamos registro de la tabla file_binary_midi
+    $result = db_select('file_binary_midi', 'm')
+      ->fields('m')
+      ->condition('fid', $midi_file_fid, '=')
+      ->execute();
 
-    drupal_page_footer();
+    foreach ($result as $file) {
+      $bFileExists = true;
+      drupal_add_http_header('Content-length', $file->filesize);
+      drupal_add_http_header('Content-type', $file->filemime);
+      drupal_add_http_header('Content-Disposition', 'attachment; filename=' . $file->filename);
+
+      print($file->bmidistring);
+    }
+
+    if ($bFileExists) {
+      drupal_page_footer();
+    }
+    else {
+      drupal_set_message(t("@username, this midi file doesn't exist.", array('@username' => $username)), 'error');
+      drupal_goto('<front>');
+    }
+  }
+  else {
+    drupal_set_message(t("@username, you don't have access to this midi file.", array('@username' => $username)), 'error');
+    drupal_goto('<front>');
   }
 }
 
