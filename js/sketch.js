@@ -98,6 +98,8 @@ var pattern = [1];
 var idInterval;
 
 function preload() {
+  document.getElementById("edit-miditext").readOnly = true; // Text area miditext readOnly
+
   // Progress Bar
   divProgress = createDiv("").id("progress");
   divProgress.parent("pianoroll");
@@ -129,8 +131,6 @@ function preload() {
 function setup() {
   clearInterval(idInterval); // Stop progress bar
   divProgress.remove(); // Remove progress bar
-
-  document.getElementById("edit-miditext").readOnly = true;
 
   spanDuracion = createSpan('4 cuadrado(s)');
   spanDuracion.parent("buttons");
