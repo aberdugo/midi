@@ -99,7 +99,8 @@ function midi_block_view($delta = '') {
               $path . '/js/sketch.js',
               array(
                 'data' => array('midi_module_path' => $path),
-                'type' => 'setting',),
+                'type' => 'setting',
+                ),
             ),
           ),
         );
@@ -122,9 +123,12 @@ function midi_permission() {
 }
 
 
+// Funcionalidad 'part1'
+/*
 /**
  *  Form constructor for the midi_fileload_form.
  */
+/*
 function midi_fileload_form($form, &$form_state) {
   $form['file'] = array(
     '#type' => 'file',
@@ -147,14 +151,15 @@ function midi_fileload_get_form() {
 
   return $output;
 }
+*/
 
-
+/*
 /**
  * Validate handler for midi_fileload_form().
  *
  * @ingroup form_example
  */
-
+/*
 function midi_fileload_form_validate($form, &$form_state) {
   $file = file_save_upload('file', array(
     // Validate extensions.
@@ -169,27 +174,32 @@ function midi_fileload_form_validate($form, &$form_state) {
     form_set_error('file', t('No file was uploaded.'));
   }
 }
+*/
 
+/*
 /**
  * Submit handler for midi_fileload_form().
  *
  * @ingroup form_example
  */
+/*
 function midi_fileload_form_submit($form, &$form_state) {
   $file = $form_state['storage']['file'];
-  /*
+
   // We are done with the file, remove it from storage.
   unset($form_state['storage']['file']);
   // Make the storage of the file permanent.
   $file->status = FILE_STATUS_PERMANENT;
   // Save file status.
   file_save($file);
-  */
+
   // Set a response to the user.
   drupal_set_message(t('The form has been submitted and the midi file has been saved temporarily, filename: @filename.', array('@filename' => $file->filename)));
 }
+*/
 
 
+// Funcionalidad 'part2'
 /**
  *  Form constructor for the midi_savefile_form.
  */
@@ -235,7 +245,6 @@ function midi_savefile_get_form() {
  * @return array
  *   Renderable array (the box element)
  */
-
 function midi_savefile_submit_ajax_callback($form, $form_state) {
   // In most cases, it is recommended that you put this logic in form generation
   // rather than the callback. Submit driven forms are an exception, because
@@ -246,27 +255,28 @@ function midi_savefile_submit_ajax_callback($form, $form_state) {
   $stringMidi = $form_state['values']['miditext'];
 
   if (!empty($stringMidi)) {
-    drupal_set_message(t("Clicked submit ({$form_state['values']['op']}): " . date('c')));
-    $element['#markup'] = "Clicked submit ({$form_state['values']['op']}): " . date('c');
-
     if (strpos($stringMidi, 'MFile') !== false) {
       $midi = new Midi(); // Midi - CONSTRUCTOR // (midi-class.inc)
       $midi->importTxt($stringMidi); // importTxt - import whole MIDI song as text (mf2t-format) // (midi-class.inc)
-      // midi_save_mid_file($midi);
       $binaryMidi = $midi->getMid();
 
       global $user;
+
+      $timestamp = REQUEST_TIME;
 
       // Insertamos registro en la tabla file_binary_midi
       $result = db_insert('file_binary_midi')
         ->fields(array(
           'uid' => $user->uid,
-          'filename' => $user->name . ".mid",
+          'filename' => $user->name . "_" . $timestamp .".mid",
           'bmidistring' => $binaryMidi,
           'filesize' => strlen($binaryMidi),
-          'timestamp' => REQUEST_TIME,
+          'timestamp' => $timestamp,
         ))
         ->execute();
+
+      drupal_set_message(t("Clicked submit ({$form_state['values']['op']}): " . $user->name . "_" . $timestamp .".mid saved."));
+      // $element['#markup'] = "Clicked submit ({$form_state['values']['op']}): " . date('c'); // Si queremos crear un msg de vuelta al que después demos un css personalizado distinto de drupal.
     }
     else {
       form_set_error('miditext', t('Midi text does not have the correct format.'));
@@ -306,7 +316,7 @@ function midi_links_page() {
 
   foreach ($result as $midi_link) {
     $midi_links[] = array(
-      'data'=> l($midi_link->filename, 'midi_files/download/' . $midi_link->uid . '/' . $midi_link->fid),
+      'data'=> l($midi_link->filename . " // " . $midi_link->filesize . "bytes", 'midi_files/download/' . $midi_link->uid . '/' . $midi_link->fid),
     );
   }
 
