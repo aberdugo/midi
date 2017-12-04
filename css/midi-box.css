@@ -1,11 +1,31 @@
 #edit-submitcreate {
-  display: none;
+  display: none; /* Cuando cargamos el bloque ocultamos el botón Save Midi file */
 }
 
-#pianoroll {
+
+#div-midi-overflow {
   height: 360px;
   overflow: auto; /* Se oculta el contenido desbordado y aparece un scroll */
 }
+
+/*
+#teclado {
+  background-color: red;
+  width: 96px;
+  height: 2112px;
+
+}
+*/
+
+#pianoroll {
+
+}
+
+/*
+#div-midi-clear {
+
+}
+*/
 
 .pintarSelected {
   color: green;
