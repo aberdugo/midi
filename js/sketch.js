@@ -64,7 +64,7 @@ keyWidht
 24  -> semicorchea
  */
 var keyWidth = 96; // Ancho de la tecla pulsada (24px es la unidad mínima, semicorchea).
-var volumenOnNota = 100; // Volumen con que se pulsa la nota (default)
+var volumenOnNota = 127; // Volumen con que se pulsa la nota (default)
 var volumenOffNota = 0; // Volumen con que se apaga la nota (default)
 var channelNota = 1; // Canal de la nota (default)
 var spanDuracion;
@@ -73,8 +73,13 @@ var buttonPintar;
 var buttonBorrar;
 // var buttonCrearMidiText;
 
+var imgTeclado;
+
 var divProgress;
 var divBar;
+
+var divWrapper1;
+var divWrapper2;
 
 var canvas;
 var notaY;
@@ -99,6 +104,13 @@ var idInterval;
 
 function preload() {
   document.getElementById("edit-miditext").readOnly = true; // Text area miditext readOnly
+
+  select('#teclado').style('height', (BEAT_HEIGHT * 88) + 'px')
+
+  imgTeclado = createImg(Drupal.settings.midi_module_path + "/assets/img/teclado88.png");
+  imgTeclado.style('width', '100%');
+  imgTeclado.style('height', '100%');
+  imgTeclado.parent(select('#teclado'));
 
   // Progress Bar
   divProgress = createDiv("").id("progress");
@@ -132,6 +144,8 @@ function setup() {
   clearInterval(idInterval); // Stop progress bar
   divProgress.remove(); // Remove progress bar
 
+  select('#topscroll-pianoroll').style('width', (BEAT_WIDTH * 64) + 'px');
+
   spanDuracion = createSpan('4 cuadrado(s)');
   spanDuracion.parent("buttons");
 
@@ -154,6 +168,22 @@ function setup() {
 
   // Botón SaveMidiFile
   buttonSaveMidiFile = select('#edit-submitcreate');
+
+  divWrapper1 = document.getElementById("wrapper1");
+  divWrapper2 = document.getElementById("wrapper2");
+
+  divWrapper1.addEventListener("scroll", function () {
+    divWrapper2.scrollLeft = divWrapper1.scrollLeft;
+    console.log(divWrapper1.scrollLeft);
+    console.log(divWrapper2.scrollLeft);
+  });
+
+  divWrapper2.addEventListener("scroll", function () {
+    divWrapper1.scrollLeft = divWrapper2.scrollLeft;
+    console.log(divWrapper1.scrollLeft);
+    console.log(divWrapper2.scrollLeft);
+  });
+
   /*
   buttonCrearMidiText = createButton("Crear Midi text");
   buttonCrearMidiText.parent("buttons").hide();
@@ -161,7 +191,7 @@ function setup() {
   */
 
   // Creamos el canvas
-  canvas = createCanvas(BEAT_WIDTH * 64, BEAT_HEIGHT * 88);
+  canvas = createCanvas(BEAT_WIDTH * 64, BEAT_HEIGHT * 88).style("display", "inline");
 
   canvas.mouseClicked(clickCanvas); // attach listener for canvas only
 

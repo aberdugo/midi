@@ -5,27 +5,45 @@
 
 #div-midi-overflow {
   height: 360px;
-  overflow: auto; /* Se oculta el contenido desbordado y aparece un scroll */
+  overflow-y: auto; /* Se oculta el contenido desbordado y aparece un scroll */
 }
 
-/*
 #teclado {
   background-color: red;
-  width: 96px;
-  height: 2112px;
+  position: relative;
+  top: 10px;
+  float: left;
+  width: 15%;
+}
+
+#contiene-pianoroll {
+  float: left;
+  width: 85%;
+}
+
+#wrapper1, #wrapper2 {
+  overflow-x: scroll;
+}
+
+#wrapper1 {
+  height: 10px;
+}
+
+#wrapper2{
 
 }
-*/
+
+#topscroll-pianoroll {
+  height: 10px;
+}
 
 #pianoroll {
 
 }
 
-/*
-#div-midi-clear {
-
+#div-clear {
+  clear: both;
 }
-*/
 
 .pintarSelected {
   color: green;
