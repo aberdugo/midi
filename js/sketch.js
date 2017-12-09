@@ -1,5 +1,5 @@
-const BEAT_WIDTH = 24; // ancho de cada beat
-const BEAT_HEIGHT = 24; // altura de cada beat
+const BEAT_WIDTH = 24; // ancho de cada beat (cuadrado)
+const BEAT_HEIGHT = 24; // altura de cada beat (cuadrado)
 const TEXT_SIZE = BEAT_HEIGHT - 16; // El tamaño de fuente del texto de la tecla pulsada
 const MIN_WIDTH_FOR_TEXT = 24; // Anchura mínima de la nota pintada para que dibuje el texto de la nota (Ej. C#5)
 const TEXT_NOTES = [
@@ -14,26 +14,6 @@ const TEXT_NOTES = [
   'B0', 'A#0', 'A0'
   //SI          LA           SOL          FA    MI           RE           DO
 ];
-
-/*
-const NOTES = [
-  // note 69 (A6) = A440
-  //note 60 (C6) = Middle C
-
-  //Do          Re           Mi    Fa           So           La           Si
-  'C0', 'C#0', 'D0', 'D#0', 'E0', 'F0', 'F#0', 'G0', 'G#0', 'A0', 'A#0', 'B0',
-  'C1', 'C#1', 'D1', 'D#1', 'E1', 'F1', 'F#1', 'G1', 'G#1', 'A1', 'A#1', 'B1',
-  'C2', 'C#2', 'D2', 'D#2', 'E2', 'F2', 'F#2', 'G2', 'G#2', 'A2', 'A#2', 'B2',
-  'C3', 'C#3', 'D3', 'D#3', 'E3', 'F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3', 'B3',
-  'C4', 'C#4', 'D4', 'D#4', 'E4', 'F4', 'F#4', 'G4', 'G#4', 'A4', 'A#4', 'B4',
-  'C5', 'C#5', 'D5', 'D#5', 'E5', 'F5', 'F#5', 'G5', 'G#5', 'A5', 'A#5', 'B5',
-  'C6', 'C#6', 'D6', 'D#6', 'E6', 'F6', 'F#6', 'G6', 'G#6', 'A6', 'A#6', 'B6',
-  'C7', 'C#7', 'D7', 'D#7', 'E7', 'F7', 'F#7', 'G7', 'G#7', 'A7', 'A#7', 'B7',
-  'C8', 'C#8', 'D8', 'D#8', 'E8', 'F8', 'F#8', 'G8', 'G#8', 'A8', 'A#8', 'B8',
-  'C9', 'C#9', 'D9', 'D#9', 'E9', 'F9', 'F#9', 'G9', 'G#9', 'A9', 'A#9', 'B9',
-  'C10','C#10','D10','D#10','E10','F10','F#10','G10'
-];
-*/
 
 // note 69 (A4) = A440
 //note 60 (C4) = Middle C
@@ -67,50 +47,60 @@ var keyWidth = 96; // Ancho de la tecla pulsada (24px es la unidad mínima, semi
 var volumenOnNota = 127; // Volumen con que se pulsa la nota (default)
 var volumenOffNota = 0; // Volumen con que se apaga la nota (default)
 var channelNota = 1; // Canal de la nota (default)
-var spanDuracion;
-var sliderKeyWidth;
-var buttonPintar;
-var buttonBorrar;
-// var buttonCrearMidiText;
+var spanDuracion; // Span que nos muestra el número de cuadrados seleccionados en el slider
+var sliderKeyWidth; // Slider para escoger el ancho de la tecla pulsada (en nº de cuadrados)
+var buttonPintar; // Pintar tecla pulsada
+var buttonBorrar; // Borrar tecla pulsada
+var buttonAtras; // Atrasa la vista del pianoroll 4 cuadrados
+var buttonAdelante; // Adelanta la vista del pianoroll 4 cuadrados
 
-var imgTeclado;
+var imgTeclado; // imágen png del piano como referencia para pintar.
 
+// Divs que que contendrán la barra de progreso mientras se recargan los archivos
+// antes de que el pianoroll esté operativo
 var divProgress;
 var divBar;
+var idInterval; // idInterval usado para mostrar la barra de progreso
 
+// Divs que contienen los 2 scrolls del canvas arriba y abajo
 var divWrapper1;
 var divWrapper2;
 
-var canvas;
-var notaY;
+var canvas; // Dónde se pinta el pianoroll
+var notaY; // Se identificará con cada una de las posiciones [i] del arrayNotes y del array soundOfPianoNotes que crearemos a continuación.
+// notaY se obtendrá de notaY = posY / BEAT_HEIGHT; cada vez que pulsemos en el canvas cuando se ejecute la función clickCanvas()
 
-// Iniciamos un array que contendrá 128 array, cada uno por cada nota.
+// Iniciamos un array que contendrá 88 arrays, uno por cada nota.
 var arrayNotes = [];
 for (var i = 0; i < 88; i++) {
   arrayNotes[i] = [];
 }
 
-// var arrayOrdenado = [];
+var estaBorrando = false; // Al cargar el pianoroll por primera vez comenzamos pintando ya que se encuentra vacío
 
-var estaBorrando = false;
+var soundOfPianoNotes = []; // Array que contendrá los archivos de sonido mp3 y ogg de las notas del piano
 
-var osc;
-
-var mySound, myPhrase, myPart;
-var soundOfPianoNotes = [];
-var pattern = [1];
-
-var idInterval;
-
+// Precargamos sonidos de notas e imágen del piano antes de que el canvas pianoroll esté operativo
+// Se autoejecuta solo (propio del funcionamiento de la librería p5.js)
 function preload() {
+  select('#edit-miditext').value("");
   document.getElementById("edit-miditext").readOnly = true; // Text area miditext readOnly
 
+  // Creamos he insertamos la imagen teclado88.png dentro del <div id="teclado">
   select('#teclado').style('height', (BEAT_HEIGHT * 88) + 'px')
-
   imgTeclado = createImg(Drupal.settings.midi_module_path + "/assets/img/teclado88.png");
   imgTeclado.style('width', '100%');
   imgTeclado.style('height', '100%');
   imgTeclado.parent(select('#teclado'));
+
+  // Desabilitamos el click derecho context menu en el <div id="teclado"> que contiene la imgTeclado
+  // Esto evita que alguien pulse la opción ver Imagen que obligaría a recargar la página posteriormente de nuevo.
+  document.addEventListener('contextmenu', function(e) {
+    var elem = e.target.closest("#teclado");
+    if (elem) {
+      e.preventDefault();
+    }
+  }, false);
 
   // Progress Bar
   divProgress = createDiv("").id("progress");
@@ -140,14 +130,15 @@ function preload() {
   }
 }
 
+// Se autoejecuta después de la función preload (propio del funcionamiento de la librería p5.js)
 function setup() {
-  clearInterval(idInterval); // Stop progress bar
-  divProgress.remove(); // Remove progress bar
+  clearInterval(idInterval); // Paramos la barra de progreso
+  divProgress.remove(); // Removemos la barra de progreso
 
   select('#topscroll-pianoroll').style('width', (BEAT_WIDTH * 64) + 'px');
 
   spanDuracion = createSpan('4 cuadrado(s)');
-  spanDuracion.parent("buttons");
+  spanDuracion.parent("buttons"); // parent() - Movemos el spanDuracion dentro del <div id="buttons">
 
   // slider
   sliderKeyWidth = createSlider(1, 32, 4, 1);
@@ -158,7 +149,7 @@ function setup() {
   // Botón Pintar
   buttonPintar = createButton("Pintar");
   buttonPintar.parent("buttons");
-  buttonPintar.class("pintarSelected"); // Clase Button no definitivo
+  buttonPintar.class("pintarSelected");
   buttonPintar.mousePressed(changeDraw);
 
   // Botón Borrar
@@ -166,39 +157,37 @@ function setup() {
   buttonBorrar.parent("buttons");
   buttonBorrar.mousePressed(changeErase);
 
+  // Botón Atrás
+  buttonAtras = createButton("<-- pianoroll atrás");
+  buttonAtras.parent("buttons");
+  buttonAtras.mousePressed(pianorollAtras);
+
+  // Botón Adelante
+  buttonAdelante = createButton("pianoroll adelante -->");
+  buttonAdelante.parent("buttons");
+  buttonAdelante.mousePressed(pianorollAdelante);
+
   // Botón SaveMidiFile
   buttonSaveMidiFile = select('#edit-submitcreate');
 
+  // funcionalidad doble scroll arriba y abajo del canvas
   divWrapper1 = document.getElementById("wrapper1");
   divWrapper2 = document.getElementById("wrapper2");
 
   divWrapper1.addEventListener("scroll", function () {
     divWrapper2.scrollLeft = divWrapper1.scrollLeft;
-    console.log(divWrapper1.scrollLeft);
-    console.log(divWrapper2.scrollLeft);
   });
 
   divWrapper2.addEventListener("scroll", function () {
     divWrapper1.scrollLeft = divWrapper2.scrollLeft;
-    console.log(divWrapper1.scrollLeft);
-    console.log(divWrapper2.scrollLeft);
   });
 
-  /*
-  buttonCrearMidiText = createButton("Crear Midi text");
-  buttonCrearMidiText.parent("buttons").hide();
-  buttonCrearMidiText.mousePressed(crearMidiText);
-  */
-
-  // Creamos el canvas
+  // Creamos el canvas con un ancho y un alto y display en línea
   canvas = createCanvas(BEAT_WIDTH * 64, BEAT_HEIGHT * 88).style("display", "inline");
-
-  canvas.mouseClicked(clickCanvas); // attach listener for canvas only
-
-  // Move the canvas so it's inside our <div id="pianoroll">.
+  canvas.mouseClicked(clickCanvas); // attach listener al canvas solo
   canvas.parent('pianoroll');
 
-  // Disabling right click context menu on a HTML Canvas
+  // Desabilitamos el click derecho context menu en el HTML Canvas
   document.addEventListener('contextmenu', function(e) {
     var elem = e.target.closest('canvas');
     if (elem) {
@@ -245,19 +234,6 @@ function setup() {
     i = i + BEAT_WIDTH;
   }
   noStroke();
-
-  /*
-  osc = new p5.Oscillator();
-  osc.setType('sine');
-  osc.freq(240);
-  // A triangle oscillator
-  //osc = new p5.TriOsc();
-  // Start silent
-  osc.start();
-  osc.amp(0);
-  */
-
-  masterVolume(0.5);
 }
 
 function cambiarDuracion() {
@@ -265,21 +241,34 @@ function cambiarDuracion() {
 }
 
 function changeDraw() {
-  buttonBorrar.removeClass("borrarSelected"); // Clase Button no definitivo
-  buttonPintar.class("pintarSelected"); // Clase Button no definitivo
+  buttonBorrar.removeClass("borrarSelected");
+  buttonPintar.class("pintarSelected");
   estaBorrando = false;
 }
 
 function changeErase() {
-  buttonPintar.removeClass("pintarSelected"); // Clase Button no definitivo
-  buttonBorrar.class("borrarSelected"); // Clase Button no definitivo
+  buttonPintar.removeClass("pintarSelected");
+  buttonBorrar.class("borrarSelected");
   estaBorrando = true;
 }
+
+function pianorollAtras() {
+  divWrapper1.scrollLeft -= BEAT_WIDTH * 4;
+  divWrapper2.scrollLeft -= BEAT_WIDTH * 4;
+}
+
+function pianorollAdelante() {
+  divWrapper1.scrollLeft += BEAT_WIDTH * 4;
+  divWrapper2.scrollLeft += BEAT_WIDTH * 4;
+}
+
+
 
 function clickCanvas() { // user click the canvas
   var posX = Math.floor(mouseX / BEAT_WIDTH) * BEAT_WIDTH;
   var posY = Math.floor(mouseY / BEAT_HEIGHT) * BEAT_HEIGHT;
 
+  // Cada vez que pulsemos el canvas si existe notaY paramos la ejecución del sonido de dicha nota
   if (notaY) {
     soundOfPianoNotes[notaY].stop();
   }
@@ -288,7 +277,7 @@ function clickCanvas() { // user click the canvas
 
   if (!estaBorrando) {
     keyWidth = sliderKeyWidth.value() * BEAT_WIDTH;
-    // console.log(keyWidth);
+
     var esPintable = true;
     var i = 0;
     while (i < arrayNotes[notaY].length && esPintable) {
@@ -303,20 +292,8 @@ function clickCanvas() { // user click the canvas
       i++;
     }
 
-    // console.log(esPintable);
     if (esPintable) {
-      // Sonido tecla pulsada con su duración.
-      // playNote(numerarNotaMidiReal(notaY));
-
       soundOfPianoNotes[notaY].play();
-
-      /*
-      myPhrase = new p5.Phrase('piano_sound', makeSound, pattern);
-      myPart = new p5.Part();
-      myPart.addPhrase(myPhrase);
-      myPart.setBPM(120);
-      myPart.start();
-      */
 
       fill(36, 231, 17); // Verde puro
       // Draw the key
@@ -340,9 +317,6 @@ function clickCanvas() { // user click the canvas
         fill(0);
         text(TEXT_NOTES[notaY], posX + 1, posY + BEAT_HEIGHT - 1);
       }
-
-
-
     }
   }
   else if (estaBorrando) {
@@ -397,14 +371,6 @@ function clickCanvas() { // user click the canvas
   habilitarSaveMidiFile();
 }
 
-/*
-function makeSound(time, playbackRate) {
-  soundOfPianoNotes[notaY].rate(playbackRate);
-  soundOfPianoNotes[notaY].play(time);
-  console.log(getDurationEnSegundos());
-}
-*/
-
 function habilitarSaveMidiFile() {
   var contieneNotas = false;
   var i = 0;
@@ -418,20 +384,11 @@ function habilitarSaveMidiFile() {
   if (contieneNotas) {
     crearMidiText();
     buttonSaveMidiFile.show();
-    // buttonSaveMidiFile.style("display", "inline");
-
-    /*
-    buttonCrearMidiText.show();
-    buttonCrearMidiText.style("display", "inline");
-    */
   }
   else {
     buttonSaveMidiFile.hide();
-    select('textarea').value(""); // erase textarea value
-
-    /*
-    buttonCrearMidiText.hide();
-    */
+    select('#edit-miditext').value(""); // borra el textarea value
+    changeDraw();
   }
 }
 
@@ -480,8 +437,7 @@ function crearMidiText() {
   stringMidi += arrayOrdenado[arrayOrdenado.length - 1][0] + " " + META_TRKEND + "\n";
   stringMidi += TRKEND;
 
-  // console.log(stringMidi);
-  select('textarea').value(stringMidi);
+  select('#edit-miditext').value(stringMidi);
 }
 
 // 0 -> 127, 1 -> 126, 2 -> 125, ...
@@ -489,28 +445,6 @@ function numerarNotaMidiReal(notaSinTransformar) {
   return (notaSinTransformar - 87) * (-1);
 }
 
-// A function to play a note
-function playNote(note, duration) {
-  osc.freq(midiToFreq(note));
-  // Fade it in
-  osc.fade(0.5,0.2);
-
-  osc.fade(0,0.5);
-
-  // If we sest a duration, fade it out
-  if (duration) {
-    setTimeout(function() {
-      osc.fade(0,0.2);
-    }, duration-50);
-  }
-}
-
 function getDurationEnSegundos() {
   return 500 * keyWidth / 96 / 1000; // 500 milisegundos en 120 BPM (Beats por minuto)
 }
-
-/*
-function draw(){
-
-}
-*/
