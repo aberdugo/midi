@@ -3,7 +3,7 @@
 /**
  * @file
  * Midi File Module
- * A block module that diplays a midi-box for using Drupal File API to load a midi file.
+ * This Midi module is designed and implemented with the premise of musical composition through graphic interface for users without knowledge of the subject.
  */
 
 /**
@@ -40,7 +40,7 @@ function midi_help($path, $arg) {
 }
 
 /*
- * Vamos a crear el bloque midi-box
+ * Vamos a crear el bloque midi_block
  */
 
 /**
@@ -93,15 +93,12 @@ function midi_block_view($delta = '') {
         $block['subject'] = t('Midi Block'); // Indicamos el título predeterminado del bloque. Si el bloque no tiene un título predeterminado, debemos indicar NULL.
         $path = drupal_get_path('module', 'midi');
         $block['content'] = array( // El contenido del cuerpo del bloque. Esto deberá ser un vector renderizado (preferiblamente) o una cadena renderizada con contenido HTML.
-          /*'part1' => array(
-            '#markup' =>  midi_fileload_get_form(),
-          ),*/
-          'part2' => array(
+          'part1' => array( // part1 - Formulario
             '#markup' =>  midi_savefile_get_form(),
           ),
-          'part3' => array(
+          'part2' => array( // part2 - midi-box contiene pianoroll
             '#theme' => 'midi_box',
-            // '#markup' => theme('midi_box'), // t('Put here the form if could be.');
+            // '#markup' => theme('midi_box')
           ),
           '#attached' => array(
             'css' => array( // Agrega una hoja de estilos en cascada a la cola de la hoja de estilos.
@@ -139,82 +136,6 @@ function midi_permission() {
 
 
 // Funcionalidad 'part1'
-/*
-/**
- *  Form constructor for the midi_fileload_form.
- */
-/*
-function midi_fileload_form($form, &$form_state) {
-  $form['file'] = array(
-    '#type' => 'file',
-    '#title' => t('Midi file'),
-    '#description' => t('Upload a midi file, allowed extension: mid'),
-  );
-
-  $form['submitLoad'] = array(
-    '#type' => 'submit',
-    '#value' => t('Load Midi'),
-  );
-
-  return $form;
-}
-
-
-function midi_fileload_get_form() {
-  $form = drupal_get_form('midi_fileload_form');
-  $output = drupal_render($form);
-
-  return $output;
-}
-*/
-
-/*
-/**
- * Validate handler for midi_fileload_form().
- *
- * @ingroup form_example
- */
-/*
-function midi_fileload_form_validate($form, &$form_state) {
-  $file = file_save_upload('file', array(
-    // Validate extensions.
-    'file_validate_extensions' => array('mid'),
-  ), FALSE,
-    FILE_EXISTS_REPLACE);
-  // If the file passed validation:
-  if ($file) {
-    $form_state['storage']['file'] = $file;
-  }
-  else {
-    form_set_error('file', t('No file was uploaded.'));
-  }
-}
-*/
-
-/*
-/**
- * Submit handler for midi_fileload_form().
- *
- * @ingroup form_example
- */
-/*
-function midi_fileload_form_submit($form, &$form_state) {
-  $file = $form_state['storage']['file'];
-
-  // We are done with the file, remove it from storage.
-  unset($form_state['storage']['file']);
-  // Make the storage of the file permanent.
-  $file->status = FILE_STATUS_PERMANENT;
-  // Save file status.
-  file_save($file);
-
-  // Set a response to the user.
-  drupal_set_message(t('The form has been submitted and the midi file has been saved temporarily, filename: @filename.', array('@filename' => $file->filename)));
-}
-*/
-
-
-// Funcionalidad 'part2'
 /**
  *  Form constructor for the midi_savefile_form.
  */
@@ -243,6 +164,7 @@ function midi_savefile_form($form, &$form_state) {
   return $form;
 }
 
+// Renderiza el array form y lo convierte en html
 function midi_savefile_get_form() {
   $form = drupal_get_form('midi_savefile_form');
   $output = drupal_render($form);
@@ -324,6 +246,7 @@ function midi_menu() {
   return $items;
 }
 
+// Genera el contenido html mostrado en la página Download Midi Files
 function midi_links_page() {
   $result = get_midis_user();
 
@@ -344,7 +267,8 @@ function midi_links_page() {
   }
 }
 
-// function get midis for user
+// Devuelve el resultado de la consulta a base de datos de todos los archivos
+// midi del usuario activo en la página.
 function get_midis_user() {
   global $user;
 
@@ -358,6 +282,7 @@ function get_midis_user() {
   return $result;
 }
 
+// Genera el archivo midi para su descarga añadiendo los Content apropiados
 function midi_filedownload($midi_file_uid, $midi_file_fid) {
   global $user;
   $bFileExists = false;

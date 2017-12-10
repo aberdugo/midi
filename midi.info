@@ -1,5 +1,5 @@
 name = Midi
-description= This Midi module is designed and implemented with the premise of musical composition through graphic interface for users without knowledge of the subject, and that this composition can be translated and downloaded as a .mid file (MIDI standard).
+description= This Midi module is designed and implemented with the premise of musical composition through graphic interface for users without knowledge of the subject.
 package = Midi
 core = 7.x
 files[] = includes/midi-class.inc
