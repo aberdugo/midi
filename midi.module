@@ -53,7 +53,7 @@ function midi_block_info() {
   // Declaración del bloque
   $blocks['midi_block'] = array(
     // The name tha will appear in the block list.
-    'info' => t('Midi box'), // info (obligatorio) - Nombre del bloque que aparecerá en el listado de bloques de administración. (Estructura/Bloques)
+    'info' => t('Midi Block'), // info (obligatorio) - Nombre del bloque que aparecerá en el listado de bloques de administración. (Estructura/Bloques)
     'status' => 1, // status (opcional) - Valor inicial de estado del bloque (1 = habilitado, 0 = deshabilitado).
     'weight' => 0, // weight (opcional) - Valor inicial del peso de ordenación del bloque.
     'region' => 'highlighted', // region (opcional) - Valor inicial de la región en la que se muestra el bloque. Si el tema no dispone de la región indicada, el bloque se mostrará deshabilitado. // highlighted - Destacado.
@@ -131,8 +131,8 @@ function midi_block_view($delta = '') {
 function midi_permission() {
   return array(
     'view block midi block' => array(
-      'title' => t('View block: Midi box'), // 'title' - Nombre del permiso. Se puede usar la función t() para que el nombre del permiso sea traducible.
-      'description' => t('View the Midi box block.'), // 'description' (opcional) - Una descripción del permiso. También se puede hacer uso de la función t().
+      'title' => t('View block: Midi Block'), // 'title' - Nombre del permiso. Se puede usar la función t() para que el nombre del permiso sea traducible.
+      'description' => t('View the Midi Block.'), // 'description' (opcional) - Una descripción del permiso. También se puede hacer uso de la función t().
     ),
   );
 }
